@@ -774,9 +774,66 @@ class TaskRabbitParser:
         return True
 
     def extract_tasker_data(self) -> List[Dict[str, str]]:
-        """Extract top 10 taskers' names and hourly rates."""
-        logger.info("Extracting tasker data...")
-        self.debug_page_elements("Before extracting tasker data")
+        """Extract tasker names and hourly rates from all paginated pages."""
+        logger.info("Extracting tasker data from all pages...")
+        all_taskers = []
+        
+        # Start with page 1
+        page_num = 1
+        base_url = self.driver.current_url.split('?')[0]  # Remove any existing query params
+        
+        while True:
+            logger.info(f"Processing page {page_num}...")
+            
+            # Navigate to current page if not page 1
+            if page_num > 1:
+                # Try to click the "Next" button or page number instead of direct URL navigation
+                success = self.navigate_to_next_page()
+                if not success:
+                    logger.warning(f"Failed to navigate to page {page_num} using pagination controls")
+                    # Fallback to direct URL navigation
+                    page_url = f"{base_url}?page={page_num}"
+                    logger.info(f"Attempting direct navigation to: {page_url}")
+                    self.driver.get(page_url)
+                    time.sleep(5)
+                    
+                    # Check if we actually reached the intended page
+                    current_url = self.driver.current_url
+                    if f"page={page_num}" not in current_url:
+                        logger.warning(f"Direct navigation failed - URL is {current_url}")
+                        break
+                else:
+                    time.sleep(5)  # Wait for page to load after clicking
+            
+            # Extract taskers from current page
+            page_taskers = self.extract_taskers_from_current_page()
+            
+            if not page_taskers:
+                logger.info(f"No taskers found on page {page_num}. Ending pagination.")
+                break
+            
+            logger.info(f"Found {len(page_taskers)} taskers on page {page_num}")
+            all_taskers.extend(page_taskers)
+            
+            # Check if there's a next page
+            has_next_page = self.check_for_next_page()
+            if not has_next_page:
+                logger.info(f"No more pages found. Completed extraction from {page_num} pages.")
+                break
+            
+            page_num += 1
+            
+            # Safety limit to prevent infinite loops
+            if page_num > 50:
+                logger.warning("Reached safety limit of 50 pages. Stopping pagination.")
+                break
+        
+        logger.info(f"Total taskers extracted from all pages: {len(all_taskers)}")
+        return all_taskers
+    
+    def extract_taskers_from_current_page(self) -> List[Dict[str, str]]:
+        """Extract tasker names and hourly rates from the current page only."""
+        logger.debug("Extracting taskers from current page...")
         taskers = []
         
         # Wait for tasker cards to load
@@ -806,7 +863,7 @@ class TaskRabbitParser:
             self.debug_page_elements("No tasker elements found")
             return []
         
-        for i, element in enumerate(tasker_elements[:10]):  # Get top 10
+        for i, element in enumerate(tasker_elements):  # Get all taskers
             try:
                 # Extract name with comprehensive selectors for modern TaskRabbit
                 name_selectors = [
@@ -959,57 +1016,237 @@ class TaskRabbitParser:
                     except Exception as e:
                         logger.debug(f"  Debug error: {e}")
                 
-                # Accept taskers with either name or rate (we'll try to get both but don't require both)
-                if name or rate:
+                # Try to get both name and rate, with enhanced fallback logic
+                if rate and not name:
                     # If we have a rate but no name, try to find name in nearby elements
-                    if rate and not name:
-                        try:
-                            # Look for name in parent or sibling elements
-                            parent = element.find_element(By.XPATH, "./..")
-                            for name_selector in name_selectors[:5]:  # Try first 5 name selectors on parent
-                                try:
-                                    name_element = parent.find_element(By.XPATH, name_selector)
-                                    potential_name = name_element.text.strip()
-                                    if potential_name and self.is_valid_person_name(potential_name):
-                                        name = potential_name
-                                        logger.debug(f"Found valid name in parent element: '{name}'")
-                                        break
-                                except NoSuchElementException:
-                                    continue
-                        except Exception as e:
-                            logger.debug(f"Error finding name for rate: {e}")
-                    
+                    try:
+                        # Look for name in parent or sibling elements
+                        parent = element.find_element(By.XPATH, "./..")
+                        for name_selector in name_selectors[:8]:  # Try more name selectors on parent
+                            try:
+                                name_element = parent.find_element(By.XPATH, name_selector)
+                                potential_name = name_element.text.strip()
+                                if potential_name and self.is_valid_person_name(potential_name):
+                                    name = potential_name
+                                    logger.debug(f"Found valid name in parent element: '{name}'")
+                                    break
+                            except NoSuchElementException:
+                                continue
+                    except Exception as e:
+                        logger.debug(f"Error finding name for rate: {e}")
+                
+                if name and not rate:
                     # If we have a name but no rate, try to find rate in nearby elements  
-                    if name and not rate:
-                        try:
-                            # Look for rate in parent or sibling elements
-                            parent = element.find_element(By.XPATH, "./..")
-                            for rate_selector in rate_selectors[:10]:  # Try first 10 rate selectors on parent
-                                try:
-                                    rate_element = parent.find_element(By.XPATH, rate_selector)
-                                    rate_text = rate_element.text.strip()
-                                    if rate_text and ('$' in rate_text or '/hr' in rate_text):
-                                        rate = rate_text
-                                        break
-                                except NoSuchElementException:
-                                    continue
-                        except Exception as e:
-                            logger.debug(f"Error finding rate for name: {e}")
-                    
-                    # Add tasker if we have at least a name or rate
+                    try:
+                        # Look for rate in parent or sibling elements
+                        parent = element.find_element(By.XPATH, "./..")
+                        for rate_selector in rate_selectors[:10]:  # Try first 10 rate selectors on parent
+                            try:
+                                rate_element = parent.find_element(By.XPATH, rate_selector)
+                                rate_text = rate_element.text.strip()
+                                if rate_text and ('$' in rate_text or '/hr' in rate_text):
+                                    rate = rate_text
+                                    break
+                            except NoSuchElementException:
+                                continue
+                    except Exception as e:
+                        logger.debug(f"Error finding rate for name: {e}")
+                
+                # Only add tasker if we have BOTH name and rate, or if we have a very high confidence single piece
+                if name and rate:
+                    # We have both name and rate - this is ideal
                     taskers.append({
-                        'name': name or 'Unknown',
-                        'hourly_rate': rate or 'Not listed'
+                        'name': name,
+                        'hourly_rate': rate
                     })
-                    logger.info(f"Added tasker: {name or 'Unknown'} - {rate or 'Not listed'}")
+                    logger.info(f"Added complete tasker: {name} - {rate}")
+                elif name and not rate:
+                    # We have name but no rate - only add if it's a very clear name
+                    if len(name.split()) >= 2 and any(char.isupper() for char in name):
+                        taskers.append({
+                            'name': name,
+                            'hourly_rate': 'Not listed'
+                        })
+                        logger.info(f"Added tasker with name only: {name} - Not listed")
+                elif rate and not name:
+                    # We have rate but no name - skip these to avoid "Unknown" entries
+                    logger.debug(f"Skipping rate-only element: {rate} (no name found)")
+                    continue
                 else:
-                    logger.warning(f"Could not extract any data for tasker element {i+1}: name='{name}', rate='{rate}'")
+                    logger.debug(f"Skipping element {i+1}: no valid name or rate found")
                     
             except Exception as e:
                 logger.warning(f"Error extracting data for tasker element {i+1}: {e}")
                 continue
                 
         return taskers
+    
+    def navigate_to_next_page(self) -> bool:
+        """Navigate to the next page by clicking pagination controls."""
+        try:
+            # Look for "Next" button or pagination controls
+            next_page_selectors = [
+                "//a[contains(@aria-label, 'Next')]",
+                "//button[contains(@aria-label, 'Next')]",
+                "//a[contains(text(), 'Next')]",
+                "//button[contains(text(), 'Next')]",
+                "//a[contains(@class, 'next')]",
+                "//button[contains(@class, 'next')]",
+                "//a[@rel='next']",
+                "//button[@rel='next']",
+                "//nav//a[contains(@href, 'page=')][last()]",  # Last pagination link in nav
+                "//div[contains(@class, 'pagination')]//a[contains(@href, 'page=')][last()]"
+            ]
+            
+            for selector in next_page_selectors:
+                try:
+                    next_elements = self.driver.find_elements(By.XPATH, selector)
+                    for element in next_elements:
+                        if element.is_displayed() and element.is_enabled():
+                            # Check if it's not disabled
+                            element_class = element.get_attribute('class') or ''
+                            if 'disabled' in element_class.lower():
+                                continue
+                            
+                            # Click the next page element
+                            logger.info(f"Clicking next page element: {selector}")
+                            element.click()
+                            return True
+                except Exception as e:
+                    logger.debug(f"Error with selector {selector}: {e}")
+                    continue
+            
+            logger.debug("No clickable next page element found")
+            return False
+            
+        except Exception as e:
+            logger.debug(f"Error navigating to next page: {e}")
+            return False
+    
+    def check_for_next_page(self) -> bool:
+        """Check if there's a next page available for pagination."""
+        try:
+            # Look for pagination indicators
+            next_page_selectors = [
+                "//a[contains(@aria-label, 'Next')]",
+                "//button[contains(@aria-label, 'Next')]",
+                "//a[contains(text(), 'Next')]",
+                "//button[contains(text(), 'Next')]",
+                "//a[contains(@class, 'next')]",
+                "//button[contains(@class, 'next')]",
+                "//a[@rel='next']",
+                "//button[@rel='next']",
+                "//a[contains(@href, 'page=')][last()]",  # Last pagination link
+                "//nav//a[last()]",  # Last link in navigation
+                "//div[contains(@class, 'pagination')]//a[last()]"
+            ]
+            
+            for selector in next_page_selectors:
+                try:
+                    next_elements = self.driver.find_elements(By.XPATH, selector)
+                    for element in next_elements:
+                        if element.is_displayed() and element.is_enabled():
+                            # Check if it's actually a "next" link and not disabled
+                            element_text = element.text.lower()
+                            element_class = element.get_attribute('class') or ''
+                            element_href = element.get_attribute('href') or ''
+                            
+                            # Skip if it's disabled
+                            if 'disabled' in element_class.lower():
+                                continue
+                            
+                            # Check if it's a valid next page link
+                            if ('next' in element_text or 
+                                'next' in element_class.lower() or
+                                'page=' in element_href):
+                                logger.debug(f"Found next page indicator: {selector}")
+                                return True
+                except Exception:
+                    continue
+            
+            # Alternative method: Check current page number vs total pages
+            try:
+                # Look for page indicators like "Page 1 of 24" or similar
+                page_info_selectors = [
+                    "//*[contains(text(), 'of ')]",
+                    "//*[contains(text(), 'Page ')]",
+                    "//div[contains(@class, 'pagination')]//text()"
+                ]
+                
+                current_url = self.driver.current_url
+                if 'page=' in current_url:
+                    # Extract current page number from URL
+                    import re
+                    page_match = re.search(r'page=(\d+)', current_url)
+                    if page_match:
+                        current_page = int(page_match.group(1))
+                        
+                        # Try to find total pages in the page content
+                        page_source = self.driver.page_source
+                        total_pages_patterns = [
+                            rf'Page {current_page} of (\d+)',
+                            rf'{current_page} of (\d+)',
+                            rf'page {current_page} of (\d+)',
+                            r'of (\d+) pages?'
+                        ]
+                        
+                        for pattern in total_pages_patterns:
+                            match = re.search(pattern, page_source, re.IGNORECASE)
+                            if match:
+                                total_pages = int(match.group(1))
+                                logger.debug(f"Found pagination info: page {current_page} of {total_pages}")
+                                return current_page < total_pages
+                
+            except Exception as e:
+                logger.debug(f"Error checking page numbers: {e}")
+            
+            # Check if there are more pages by looking for page numbers
+            try:
+                # Look for pagination with page numbers
+                page_number_selectors = [
+                    "//nav//a[contains(@href, 'page=')]",
+                    "//div[contains(@class, 'pagination')]//a[contains(@href, 'page=')]",
+                    "//ul[contains(@class, 'pagination')]//a[contains(@href, 'page=')]"
+                ]
+                
+                current_url = self.driver.current_url
+                import re
+                current_page_match = re.search(r'page=(\d+)', current_url)
+                current_page = int(current_page_match.group(1)) if current_page_match else 1
+                
+                for selector in page_number_selectors:
+                    try:
+                        page_elements = self.driver.find_elements(By.XPATH, selector)
+                        for element in page_elements:
+                            href = element.get_attribute('href') or ''
+                            page_match = re.search(r'page=(\d+)', href)
+                            if page_match:
+                                page_num = int(page_match.group(1))
+                                if page_num > current_page:
+                                    logger.debug(f"Found higher page number: {page_num}")
+                                    return True
+                    except Exception:
+                        continue
+                        
+            except Exception as e:
+                logger.debug(f"Error checking page numbers: {e}")
+            
+            # Final check: Look for any indication of more results
+            try:
+                page_source = self.driver.page_source.lower()
+                more_indicators = ['show more', 'load more', 'next page', 'page 2', 'more results']
+                if any(indicator in page_source for indicator in more_indicators):
+                    logger.debug("Found indication of more pages in page source")
+                    return True
+            except Exception as e:
+                logger.debug(f"Error checking page source: {e}")
+            
+            logger.debug("No next page found")
+            return False
+            
+        except Exception as e:
+            logger.debug(f"Error checking for next page: {e}")
+            return False
     
     def save_to_csv(self, taskers: List[Dict[str, str]], filename: str = "taskrabbit_taskers.csv"):
         """Save tasker data to CSV file."""
@@ -1037,7 +1274,7 @@ class TaskRabbitParser:
             self.select_furniture_options()
             self.sort_by_recommended()
             
-            # Extract and save data
+            # Extract and save data from all pages
             taskers = self.extract_tasker_data()
             
             if taskers:
