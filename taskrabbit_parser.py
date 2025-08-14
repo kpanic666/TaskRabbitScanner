@@ -2,8 +2,9 @@
 """
 TaskRabbit Furniture Assembly Tasker Parser
 
-This script automates the TaskRabbit booking flow to extract top 10 taskers
+This script automates the TaskRabbit booking flow to extract all available taskers
 for Furniture Assembly category and saves their names and hourly rates to CSV.
+Supports dynamic pagination to capture taskers from multiple pages.
 """
 
 import time
@@ -126,15 +127,17 @@ class TaskRabbitParser:
                             element.click()
                             logger.info(f"Closed overlay/popup with selector: {selector}")
                             time.sleep(1)
-                        except:
+                        except Exception as e:
                             # Try JavaScript click if regular click fails
                             try:
                                 self.driver.execute_script("arguments[0].click();", element)
                                 logger.info(f"Closed overlay/popup with JavaScript: {selector}")
                                 time.sleep(1)
-                            except:
+                            except Exception:
+                                logger.debug(f"Failed to close overlay with JavaScript: {e}")
                                 continue
-            except:
+            except Exception as e:
+                logger.debug(f"Error with overlay selector {selector}: {e}")
                 continue
         
         # Additional method: Press ESC key to close modals
@@ -194,7 +197,8 @@ class TaskRabbitParser:
                                 logger.info(f"Removing large overlay container: {container.get_attribute('class')}")
                                 self.driver.execute_script("arguments[0].remove();", container)
                                 time.sleep(0.5)
-                        except:
+                        except Exception as e:
+                            logger.debug(f"Error removing element: {e}")
                             continue
         except Exception as e:
             logger.info(f"Error removing container overlays: {e}")
@@ -457,7 +461,6 @@ class TaskRabbitParser:
         ]
         
         both_option = None
-        selected_selector = None
         
         for selector in furniture_type_selectors:
             try:
@@ -465,13 +468,12 @@ class TaskRabbitParser:
                 for element in elements:
                     if element.is_displayed() and element.is_enabled():
                         both_option = element
-                        selected_selector = selector
                         logger.info(f"Found 'Both IKEA and non-IKEA furniture' option with selector: {selector}")
                         logger.info(f"Element text: '{element.text}'")
                         break
                 if both_option:
                     break
-            except Exception as e:
+            except Exception:
                 continue
         
         if both_option:
@@ -485,7 +487,8 @@ class TaskRabbitParser:
                     try:
                         input_element = both_option.find_element(By.XPATH, ".//input")
                         input_element.click()
-                    except:
+                    except Exception as e:
+                        logger.debug(f"Error with continue selector {selector}: {e}")
                         both_option.click()
                 else:
                     # For buttons or other elements
@@ -553,7 +556,6 @@ class TaskRabbitParser:
         ]
         
         medium_option = None
-        selected_selector = None
         
         for selector in size_selectors:
             try:
@@ -561,13 +563,12 @@ class TaskRabbitParser:
                 for element in elements:
                     if element.is_displayed() and element.is_enabled():
                         medium_option = element
-                        selected_selector = selector
                         logger.info(f"Found 'Medium - Est. 2-3 hrs' option with selector: {selector}")
                         logger.info(f"Element text: '{element.text}'")
                         break
                 if medium_option:
                     break
-            except Exception as e:
+            except Exception:
                 continue
         
         if medium_option:
@@ -581,7 +582,7 @@ class TaskRabbitParser:
                     try:
                         input_element = medium_option.find_element(By.XPATH, ".//input")
                         input_element.click()
-                    except:
+                    except Exception:
                         medium_option.click()
                 else:
                     # For buttons or other elements
@@ -649,7 +650,6 @@ class TaskRabbitParser:
         ]
         
         task_details_field = None
-        selected_selector = None
         
         for selector in task_details_selectors:
             try:
@@ -657,13 +657,12 @@ class TaskRabbitParser:
                 for element in elements:
                     if element.is_displayed() and element.is_enabled():
                         task_details_field = element
-                        selected_selector = selector
                         logger.info(f"Found task details field with selector: {selector}")
                         logger.info(f"Element tag: '{element.tag_name}', placeholder: '{element.get_attribute('placeholder')}'")
                         break
                 if task_details_field:
                     break
-            except Exception as e:
+            except Exception:
                 continue
         
         if task_details_field:
@@ -778,55 +777,35 @@ class TaskRabbitParser:
         logger.info("Extracting tasker data from all pages...")
         all_taskers = []
         
-        # Start with page 1
-        page_num = 1
-        base_url = self.driver.current_url.split('?')[0]  # Remove any existing query params
+        # First, get all available page numbers
+        available_pages = self.get_available_page_numbers()
+        if not available_pages:
+            logger.info("No pagination found, processing single page...")
+            available_pages = [1]
         
-        while True:
+        logger.info(f"Found {len(available_pages)} pages to process: {available_pages}")
+        
+        # Process each page individually
+        for page_num in available_pages:
             logger.info(f"Processing page {page_num}...")
             
-            # Navigate to current page if not page 1
+            # Navigate to the specific page if not page 1
             if page_num > 1:
-                # Try to click the "Next" button or page number instead of direct URL navigation
-                success = self.navigate_to_next_page()
+                success = self.navigate_to_page_number(page_num)
                 if not success:
-                    logger.warning(f"Failed to navigate to page {page_num} using pagination controls")
-                    # Fallback to direct URL navigation
-                    page_url = f"{base_url}?page={page_num}"
-                    logger.info(f"Attempting direct navigation to: {page_url}")
-                    self.driver.get(page_url)
-                    time.sleep(5)
-                    
-                    # Check if we actually reached the intended page
-                    current_url = self.driver.current_url
-                    if f"page={page_num}" not in current_url:
-                        logger.warning(f"Direct navigation failed - URL is {current_url}")
-                        break
-                else:
-                    time.sleep(5)  # Wait for page to load after clicking
+                    logger.warning(f"Failed to navigate to page {page_num}, skipping...")
+                    continue
+                time.sleep(5)  # Wait for page to load after clicking
             
             # Extract taskers from current page
             page_taskers = self.extract_taskers_from_current_page()
             
             if not page_taskers:
-                logger.info(f"No taskers found on page {page_num}. Ending pagination.")
-                break
+                logger.warning(f"No taskers found on page {page_num}, but continuing to next page...")
+                continue  # Continue to next page instead of breaking
             
             logger.info(f"Found {len(page_taskers)} taskers on page {page_num}")
             all_taskers.extend(page_taskers)
-            
-            # Check if there's a next page
-            has_next_page = self.check_for_next_page()
-            if not has_next_page:
-                logger.info(f"No more pages found. Completed extraction from {page_num} pages.")
-                break
-            
-            page_num += 1
-            
-            # Safety limit to prevent infinite loops
-            if page_num > 50:
-                logger.warning("Reached safety limit of 50 pages. Stopping pagination.")
-                break
         
         logger.info(f"Total taskers extracted from all pages: {len(all_taskers)}")
         return all_taskers
@@ -841,9 +820,9 @@ class TaskRabbitParser:
         
         # Find tasker cards/elements with multiple selectors
         tasker_selectors = [
+            "//div[contains(@data-testid, 'tasker')]",  # Primary working selector
             "//div[contains(@class, 'tasker')]",
             "//div[contains(@class, 'card')]",
-            "//div[contains(@data-testid, 'tasker')]",
             "//div[contains(@class, 'TaskerCard')]",
             "//div[contains(@class, 'provider')]",
             "//div[contains(@class, 'worker')]",
@@ -1081,46 +1060,354 @@ class TaskRabbitParser:
                 
         return taskers
     
-    def navigate_to_next_page(self) -> bool:
-        """Navigate to the next page by clicking pagination controls."""
+    def debug_page_structure(self):
+        """Debug method to inspect page structure for pagination elements."""
         try:
-            # Look for "Next" button or pagination controls
-            next_page_selectors = [
-                "//a[contains(@aria-label, 'Next')]",
-                "//button[contains(@aria-label, 'Next')]",
-                "//a[contains(text(), 'Next')]",
-                "//button[contains(text(), 'Next')]",
-                "//a[contains(@class, 'next')]",
-                "//button[contains(@class, 'next')]",
-                "//a[@rel='next']",
-                "//button[@rel='next']",
-                "//nav//a[contains(@href, 'page=')][last()]",  # Last pagination link in nav
-                "//div[contains(@class, 'pagination')]//a[contains(@href, 'page=')][last()]"
+            logger.info("=== DEBUGGING PAGE STRUCTURE FOR PAGINATION ===")
+            
+            # Check for any elements containing common pagination keywords
+            pagination_keywords = ['page', 'next', 'prev', 'pagination', 'pager']
+            
+            for keyword in pagination_keywords:
+                # Look for elements with keyword in class, id, or text
+                selectors = [
+                    f"//*[contains(@class, '{keyword}')]",
+                    f"//*[contains(@id, '{keyword}')]",
+                    f"//*[contains(text(), '{keyword}')]",
+                    f"//*[contains(@data-testid, '{keyword}')]"
+                ]
+                
+                for selector in selectors:
+                    try:
+                        elements = self.driver.find_elements(By.XPATH, selector)
+                        if elements:
+                            logger.info(f"Found {len(elements)} elements with '{keyword}' using selector: {selector}")
+                            for i, element in enumerate(elements[:3]):  # Show first 3 elements
+                                try:
+                                    tag = element.tag_name
+                                    text = element.text.strip()[:50]  # First 50 chars
+                                    class_attr = element.get_attribute('class') or ''
+                                    id_attr = element.get_attribute('id') or ''
+                                    href = element.get_attribute('href') or ''
+                                    logger.info(f"  Element {i+1}: <{tag}> text='{text}' class='{class_attr}' id='{id_attr}' href='{href}'")
+                                except Exception:
+                                    continue
+                    except Exception:
+                        continue
+            
+            # Also look for any numeric links (potential page numbers)
+            numeric_selectors = [
+                "//a[text()='1']", "//a[text()='2']", "//a[text()='3']", "//a[text()='4']", "//a[text()='5']",
+                "//button[text()='1']", "//button[text()='2']", "//button[text()='3']", "//button[text()='4']", "//button[text()='5']"
             ]
             
-            for selector in next_page_selectors:
+            for selector in numeric_selectors:
                 try:
-                    next_elements = self.driver.find_elements(By.XPATH, selector)
-                    for element in next_elements:
-                        if element.is_displayed() and element.is_enabled():
-                            # Check if it's not disabled
-                            element_class = element.get_attribute('class') or ''
-                            if 'disabled' in element_class.lower():
+                    elements = self.driver.find_elements(By.XPATH, selector)
+                    if elements:
+                        logger.info(f"Found numeric elements with selector: {selector}")
+                        for element in elements:
+                            try:
+                                href = element.get_attribute('href') or ''
+                                class_attr = element.get_attribute('class') or ''
+                                logger.info(f"  Numeric element: href='{href}' class='{class_attr}'")
+                            except Exception:
                                 continue
+                except Exception:
+                    continue
+                    
+            logger.info("=== END PAGE STRUCTURE DEBUG ===")
+            
+        except Exception as e:
+            logger.error(f"Error in debug_page_structure: {e}")
+
+    def get_available_page_numbers(self) -> List[int]:
+        """Get all available page numbers from the pagination controls."""
+        try:
+            page_numbers = []
+            
+            # Add comprehensive debugging
+            self.debug_page_structure()
+            
+            # Add debug logging to see what pagination elements exist
+            logger.debug("Searching for pagination elements...")
+            
+            # Look for pagination controls with page numbers - expanded selectors
+            pagination_selectors = [
+                "//nav//a[contains(@href, 'page=')]",
+                "//div[contains(@class, 'pagination')]//a[contains(@href, 'page=')]",
+                "//ul[contains(@class, 'pagination')]//a[contains(@href, 'page=')]",
+                "//div[contains(@class, 'page')]//a[contains(@href, 'page=')]",
+                "//nav//button[contains(@aria-label, 'Page')]",
+                "//div[contains(@class, 'pagination')]//button[contains(@aria-label, 'Page')]",
+                "//a[contains(@href, 'page=')]",  # Any link with page parameter
+                "//button[contains(@aria-label, 'Page')]",  # Any button with Page aria-label
+                "//div[contains(@class, 'page')]//a",  # Any link in page-related div
+                "//nav//a",  # Any link in nav
+                "//div[contains(@class, 'pagination')]//a",  # Any link in pagination div
+                "//ul[contains(@class, 'pagination')]//a",  # Any link in pagination ul
+                "//span[contains(@class, 'page')]//a",  # Any link in page span
+                "//div[contains(@data-testid, 'page')]//a",  # TaskRabbit specific
+                "//div[contains(@data-testid, 'pagination')]//a"  # TaskRabbit specific
+            ]
+            
+            # First, look specifically for MUI pagination buttons (Material-UI)
+            mui_pagination_selectors = [
+                "//button[contains(@class, 'MuiPaginationItem-page')]",
+                "//button[contains(@class, 'MuiPaginationItem-root')]"
+            ]
+            
+            for selector in mui_pagination_selectors:
+                try:
+                    elements = self.driver.find_elements(By.XPATH, selector)
+                    if elements:
+                        logger.debug(f"Found {len(elements)} MUI pagination elements with selector: {selector}")
+                    
+                    for element in elements:
+                        if element.is_displayed():
+                            text = element.text.strip()
+                            class_attr = element.get_attribute('class') or ''
                             
-                            # Click the next page element
-                            logger.info(f"Clicking next page element: {selector}")
-                            element.click()
-                            return True
+                            logger.debug(f"MUI Pagination element: text='{text}', class='{class_attr}'")
+                            
+                            # Extract page number from button text
+                            if text.isdigit():
+                                page_num = int(text)
+                                if page_num not in page_numbers:
+                                    page_numbers.append(page_num)
+                                    logger.debug(f"Added page number {page_num} from MUI button text")
+                                    
                 except Exception as e:
-                    logger.debug(f"Error with selector {selector}: {e}")
+                    logger.debug(f"Error processing MUI pagination element: {e}")
                     continue
             
-            logger.debug("No clickable next page element found")
+            # If we found MUI pagination, check if we need to find the total number of pages
+            if page_numbers:
+                page_numbers.sort()
+                logger.info(f"Found visible MUI page numbers: {page_numbers}")
+                
+                # If we see a pattern like [1,2,3,4,5,24], we need to fill in the missing pages
+                # The last number is likely the total page count
+                if len(page_numbers) >= 2:
+                    max_page = max(page_numbers)
+                    # Check if there's a gap (indicating ellipsis pagination)
+                    if max_page > len(page_numbers):
+                        logger.info(f"Detected ellipsis pagination. Max page: {max_page}, visible pages: {len(page_numbers)}")
+                        # Generate all page numbers from 1 to max_page
+                        all_pages = list(range(1, max_page + 1))
+                        logger.info(f"Generated complete page range: 1 to {max_page} ({len(all_pages)} pages)")
+                        return all_pages
+            
+                return page_numbers
+
+            # Fallback to original selectors for other pagination types
+            for selector in pagination_selectors:
+                try:
+                    elements = self.driver.find_elements(By.XPATH, selector)
+                    if elements:
+                        logger.debug(f"Found {len(elements)} elements with selector: {selector}")
+                    
+                    for element in elements:
+                        if element.is_displayed():
+                            # Try to extract page number from href
+                            href = element.get_attribute('href') or ''
+                            text = element.text.strip()
+                            tag_name = element.tag_name
+                            class_attr = element.get_attribute('class') or ''
+                            
+                            logger.debug(f"Pagination element: tag={tag_name}, text='{text}', href='{href}', class='{class_attr}'")
+                            
+                            # Extract page number from href
+                            import re
+                            if 'page=' in href:
+                                page_match = re.search(r'page=(\d+)', href)
+                                if page_match:
+                                    page_num = int(page_match.group(1))
+                                    if page_num not in page_numbers:
+                                        page_numbers.append(page_num)
+                                        logger.debug(f"Added page number {page_num} from href")
+                            
+                            # Also try to extract from text if it's a number
+                            elif text.isdigit():
+                                page_num = int(text)
+                                if page_num not in page_numbers:
+                                    page_numbers.append(page_num)
+                                    logger.debug(f"Added page number {page_num} from text")
+                                    
+                except Exception as e:
+                    logger.debug(f"Error processing pagination element: {e}")
+                    continue
+            
+            # If we found page numbers, sort them and return
+            if page_numbers:
+                page_numbers.sort()
+                logger.info(f"Found page numbers: {page_numbers}")
+                return page_numbers
+            
+            # Fallback: look for text-based pagination
+            text_selectors = [
+                "//nav//a[text()]",
+                "//div[contains(@class, 'pagination')]//a[text()]",
+                "//ul[contains(@class, 'pagination')]//a[text()]"
+            ]
+            
+            for selector in text_selectors:
+                try:
+                    elements = self.driver.find_elements(By.XPATH, selector)
+                    for element in elements:
+                        if element.is_displayed():
+                            text = element.text.strip()
+                            if text.isdigit():
+                                page_num = int(text)
+                                if page_num not in page_numbers:
+                                    page_numbers.append(page_num)
+                except Exception:
+                    continue
+            
+            if page_numbers:
+                page_numbers.sort()
+                logger.info(f"Found page numbers from text: {page_numbers}")
+                return page_numbers
+            
+            logger.debug("No pagination page numbers found")
+            return []
+            
+        except Exception as e:
+            logger.debug(f"Error getting available page numbers: {e}")
+            return []
+    
+    def navigate_to_page_number(self, page_num: int) -> bool:
+        """Navigate to a specific page number by clicking the page button."""
+        try:
+            # First, try MUI pagination buttons (Material-UI)
+            mui_page_selectors = [
+                f"//button[contains(@class, 'MuiPaginationItem-page') and text()='{page_num}']",
+                f"//button[contains(@class, 'MuiPaginationItem-root') and text()='{page_num}']"
+            ]
+            
+            for selector in mui_page_selectors:
+                try:
+                    elements = self.driver.find_elements(By.XPATH, selector)
+                    for element in elements:
+                        if element.is_displayed() and element.is_enabled():
+                            # Check if it's not the current page
+                            element_class = element.get_attribute('class') or ''
+                            aria_current = element.get_attribute('aria-current') or ''
+                            
+                            # Skip if it's the current page
+                            if ('selected' in element_class.lower() or 
+                                'current' in element_class.lower() or 
+                                'active' in element_class.lower() or
+                                aria_current == 'page'):
+                                logger.debug(f"Skipping current page button for page {page_num}")
+                                continue
+                            
+                            # Try JavaScript click first (more reliable for React/MUI components)
+                            try:
+                                logger.info(f"Trying JavaScript click for MUI page {page_num} button")
+                                self.driver.execute_script("arguments[0].click();", element)
+                                time.sleep(4)  # Wait longer for JavaScript navigation
+                                
+                                # Check if navigation succeeded by looking for page content changes
+                                # Verify by checking if the current page indicator has changed
+                                current_page_elements = self.driver.find_elements(By.XPATH, 
+                                    f"//button[contains(@class, 'MuiPaginationItem') and (contains(@class, 'selected') or @aria-current='page') and text()='{page_num}']")
+                                
+                                if current_page_elements:
+                                    logger.info(f"Successfully navigated to page {page_num} via JavaScript (verified by selected state)")
+                                    return True
+                                
+                                # Alternative: check URL
+                                current_url = self.driver.current_url
+                                if f"page={page_num}" in current_url:
+                                    logger.info(f"Successfully navigated to page {page_num} via JavaScript (verified by URL)")
+                                    return True
+                                    
+                            except Exception as js_error:
+                                logger.debug(f"JavaScript click failed: {js_error}")
+                            
+                            # Fallback to regular click
+                            logger.info(f"Trying regular click for MUI page {page_num} button with selector: {selector}")
+                            element.click()
+                            
+                            # Wait for page to load and verify navigation
+                            time.sleep(3)
+                            
+                            # Verify that we've navigated to the correct page
+                            current_url = self.driver.current_url
+                            if f"page={page_num}" in current_url:
+                                logger.info(f"Successfully navigated to page {page_num}")
+                                return True
+                            else:
+                                # Try to wait a bit more and check again
+                                time.sleep(2)
+                                current_url = self.driver.current_url
+                                if f"page={page_num}" in current_url:
+                                    logger.info(f"Successfully navigated to page {page_num} after additional wait")
+                                    return True
+                                else:
+                                    # Alternative verification: check if page content has changed
+                                    # Look for current page indicator in pagination
+                                    try:
+                                        current_page_elements = self.driver.find_elements(By.XPATH, 
+                                            f"//button[contains(@class, 'MuiPaginationItem') and (contains(@class, 'selected') or @aria-current='page') and text()='{page_num}']")
+                                        if current_page_elements:
+                                            logger.info(f"Successfully navigated to page {page_num} (verified by selected state)")
+                                            return True
+                                    except Exception:
+                                        pass
+                                    
+                                    logger.debug(f"Navigation to page {page_num} may have failed - URL is {current_url}")
+                                    # Continue to try other selectors
+                            
+                except Exception as e:
+                    logger.debug(f"Error with MUI page selector {selector}: {e}")
+                    continue
+            
+            # Fallback to traditional page selectors
+            page_selectors = [
+                f"//nav//a[contains(@href, 'page={page_num}')]",
+                f"//div[contains(@class, 'pagination')]//a[contains(@href, 'page={page_num}')]",
+                f"//ul[contains(@class, 'pagination')]//a[contains(@href, 'page={page_num}')]",
+                f"//div[contains(@class, 'page')]//a[contains(@href, 'page={page_num}')]",
+                f"//nav//a[text()='{page_num}']",
+                f"//div[contains(@class, 'pagination')]//a[text()='{page_num}']",
+                f"//ul[contains(@class, 'pagination')]//a[text()='{page_num}']",
+                f"//nav//button[contains(@aria-label, 'Page {page_num}')]",
+                f"//div[contains(@class, 'pagination')]//button[contains(@aria-label, 'Page {page_num}')]"
+            ]
+            
+            for selector in page_selectors:
+                try:
+                    elements = self.driver.find_elements(By.XPATH, selector)
+                    for element in elements:
+                        if element.is_displayed() and element.is_enabled():
+                            # Check if it's not disabled or current page
+                            element_class = element.get_attribute('class') or ''
+                            aria_current = element.get_attribute('aria-current') or ''
+                            
+                            # Skip if it's the current page or disabled
+                            if ('disabled' in element_class.lower() or 
+                                'current' in element_class.lower() or 
+                                'active' in element_class.lower() or
+                                aria_current == 'page'):
+                                logger.debug(f"Skipping current/disabled page button for page {page_num}")
+                                continue
+                            
+                            # Click the page number button
+                            logger.info(f"Clicking page {page_num} button with selector: {selector}")
+                            element.click()
+                            return True
+                            
+                except Exception as e:
+                    logger.debug(f"Error with page selector {selector}: {e}")
+                    continue
+            
+            logger.debug(f"No clickable page {page_num} button found")
             return False
             
         except Exception as e:
-            logger.debug(f"Error navigating to next page: {e}")
+            logger.debug(f"Error navigating to page {page_num}: {e}")
             return False
     
     def check_for_next_page(self) -> bool:
@@ -1167,11 +1454,6 @@ class TaskRabbitParser:
             # Alternative method: Check current page number vs total pages
             try:
                 # Look for page indicators like "Page 1 of 24" or similar
-                page_info_selectors = [
-                    "//*[contains(text(), 'of ')]",
-                    "//*[contains(text(), 'Page ')]",
-                    "//div[contains(@class, 'pagination')]//text()"
-                ]
                 
                 current_url = self.driver.current_url
                 if 'page=' in current_url:
