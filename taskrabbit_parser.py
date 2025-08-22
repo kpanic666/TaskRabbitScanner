@@ -10,6 +10,7 @@ Supports dynamic pagination to capture taskers from multiple pages.
 import time
 import csv
 import logging
+import re
 from typing import List, Dict
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -761,7 +762,6 @@ class TaskRabbitParser:
             return False
         
         # Check if it looks like a typical name pattern (letters, spaces, dots, apostrophes)
-        import re
         name_pattern = r"^[A-Za-z\s\.\'\-]+$"
         if not re.match(name_pattern, text):
             return False
@@ -797,6 +797,9 @@ class TaskRabbitParser:
                     continue
                 time.sleep(5)  # Wait for page to load after clicking
             
+            # Debug: capture all visible names before extraction
+            self.debug_visible_names()
+            
             # Extract taskers from current page
             page_taskers = self.extract_taskers_from_current_page()
             
@@ -810,13 +813,67 @@ class TaskRabbitParser:
         logger.info(f"Total taskers extracted from all pages: {len(all_taskers)}")
         return all_taskers
     
+    def extract_all_visible_text(self):
+        """Extract all visible text that might be tasker names and rates."""
+        logger.debug("Extracting all visible text...")
+        
+        # Get all text elements
+        all_elements = self.driver.find_elements(By.XPATH, "//*[text()]")
+        
+        potential_names = []
+        rates = []
+        
+        for element in all_elements:
+            try:
+                if element.is_displayed():
+                    text = element.text.strip()
+                    
+                    # Look for names (contains dot and is short)
+                    if (text and 
+                        '.' in text and 
+                        len(text) < 50 and 
+                        len(text.split()) <= 3 and  # Max 3 words
+                        any(c.isalpha() for c in text) and
+                        not any(keyword in text.lower() for keyword in ['http', 'www', 'email', 'phone', 'click', 'book', 'view', 'how', 'help', 'about', 'task', 'review', 'experience'])):
+                        potential_names.append(text)
+                    
+                    # Look for rates
+                    if '$' in text and '/hr' in text and len(text) < 20:
+                        rates.append(text)
+                        
+            except Exception:
+                continue
+        
+        # Remove duplicates
+        potential_names = list(set(potential_names))
+        rates = list(set(rates))
+        
+        return potential_names, rates
+
     def extract_taskers_from_current_page(self) -> List[Dict[str, str]]:
         """Extract tasker names and hourly rates from the current page only."""
         logger.debug("Extracting taskers from current page...")
         taskers = []
         
+        # Enhanced debug logging to capture what we actually see
+        logger.info(f"Current URL: {self.driver.current_url}")
+        logger.info(f"Page title: {self.driver.title}")
+        
         # Wait for tasker cards to load
         time.sleep(5)
+        
+        # Use improved extraction method
+        names, rates = self.extract_all_visible_text()
+        
+        logger.info(f"Found {len(names)} potential names and {len(rates)} rates")
+        
+        # Filter out rates that are mixed in with names
+        clean_names = []
+        for name in names:
+            if not ('$' in name and '/hr' in name):  # Exclude rates from names list
+                clean_names.append(name)
+        
+        logger.info(f"Filtered to {len(clean_names)} clean names")
         
         # Find tasker cards/elements with multiple selectors
         tasker_selectors = [
@@ -830,235 +887,120 @@ class TaskRabbitParser:
             "//div[contains(@class, 'profile')]"
         ]
         
+        # Try container-based pairing first
         tasker_elements = []
         for selector in tasker_selectors:
             tasker_elements = self.driver.find_elements(By.XPATH, selector)
             if tasker_elements:
                 logger.info(f"Found {len(tasker_elements)} tasker elements with selector: {selector}")
-                break
+                
+                # Try to pair names and rates within containers
+                for i, element in enumerate(tasker_elements):
+                    try:
+                        container_text = element.text
+                        
+                        # Look for name in this container (use clean names)
+                        container_name = None
+                        for name in clean_names:
+                            if name in container_text:
+                                container_name = name
+                                break
+                        
+                        # Look for rate in this container  
+                        container_rate = None
+                        for rate in rates:
+                            if rate in container_text:
+                                container_rate = rate
+                                break
+                        
+                        if container_name and container_rate:
+                            taskers.append({
+                                'name': container_name,
+                                'hourly_rate': container_rate
+                            })
+                            logger.info(f"Container-paired: {container_name} - {container_rate}")
+                            
+                    except Exception:
+                        continue
+                
+                if taskers:
+                    break  # Found some taskers, stop trying other selectors
         
-        if not tasker_elements:
-            logger.error("No tasker elements found")
-            self.debug_page_elements("No tasker elements found")
+        # If container-based pairing didn't work, pair all clean names with available rates
+        if not taskers and len(clean_names) > 0:
+            logger.info("Using position-based pairing for all clean names...")
+            for i, name in enumerate(clean_names):
+                if i < len(rates):
+                    rate = rates[i]
+                else:
+                    rate = "Rate not found"
+                
+                taskers.append({
+                    'name': name,
+                    'hourly_rate': rate
+                })
+                logger.info(f"Position-paired: {name} - {rate}")
+        
+        if not taskers:
+            logger.error("No taskers found with improved extraction")
+            # Save page source for debugging
+            try:
+                with open('/tmp/taskrabbit_page_debug.html', 'w', encoding='utf-8') as f:
+                    f.write(self.driver.page_source)
+                logger.info("Saved page source to /tmp/taskrabbit_page_debug.html for debugging")
+            except Exception as e:
+                logger.warning(f"Could not save page source: {e}")
             return []
         
-        for i, element in enumerate(tasker_elements):  # Get all taskers
-            try:
-                # Extract name with comprehensive selectors for modern TaskRabbit
-                name_selectors = [
-                    # Modern TaskRabbit selectors
-                    ".//h1", ".//h2", ".//h3", ".//h4", ".//h5", ".//h6",
-                    ".//div[contains(@class, 'name')]",
-                    ".//span[contains(@class, 'name')]",
-                    ".//p[contains(@class, 'name')]",
-                    ".//div[contains(@data-testid, 'name')]",
-                    ".//span[contains(@data-testid, 'name')]",
-                    ".//strong", ".//b",
-                    
-                    # Generic text elements that might contain names
-                    ".//div[contains(@class, 'title')]",
-                    ".//span[contains(@class, 'title')]",
-                    ".//div[contains(@class, 'header')]",
-                    ".//span[contains(@class, 'header')]",
-                    
-                    # Fallback - any text element
-                    ".//div[text()]",
-                    ".//span[text()]",
-                    ".//p[text()]"
-                ]
-                
-                name = None
-                for name_selector in name_selectors:
-                    try:
-                        name_element = element.find_element(By.XPATH, name_selector)
-                        potential_name = name_element.text.strip()
-                        
-                        # Filter out non-names and validate it's actually a person's name
-                        if potential_name:
-                            is_valid = self.is_valid_person_name(potential_name)
-                            logger.debug(f"Name validation: '{potential_name}' -> {is_valid}")
-                            if is_valid:
-                                name = potential_name
-                                break
-                    except NoSuchElementException:
-                        continue
-                
-                # Extract hourly rate with comprehensive selectors for modern TaskRabbit
-                rate_selectors = [
-                    # Direct text searches for dollar amounts
-                    ".//*[contains(text(), '$')]",
-                    ".//*[contains(text(), '/hr')]",
-                    ".//*[contains(text(), 'per hour')]",
-                    ".//*[contains(text(), 'hour')]",
-                    # Common price-related classes and attributes
-                    ".//span[contains(@class, 'price')]",
-                    ".//div[contains(@class, 'price')]",
-                    ".//span[contains(@class, 'rate')]",
-                    ".//div[contains(@class, 'rate')]",
-                    ".//span[contains(@class, 'cost')]",
-                    ".//div[contains(@class, 'cost')]",
-                    ".//span[contains(@class, 'pricing')]",
-                    ".//div[contains(@class, 'pricing')]",
-                    ".//span[contains(@class, 'hourly')]",
-                    ".//div[contains(@class, 'hourly')]",
-                    ".//span[contains(@class, 'wage')]",
-                    ".//div[contains(@class, 'wage')]",
-                    # Data test IDs
-                    ".//span[contains(@data-testid, 'price')]",
-                    ".//div[contains(@data-testid, 'price')]",
-                    ".//span[contains(@data-testid, 'rate')]",
-                    ".//div[contains(@data-testid, 'rate')]",
-                    ".//span[contains(@data-testid, 'cost')]",
-                    ".//div[contains(@data-testid, 'cost')]",
-                    # Specific element types with dollar signs
-                    ".//span[contains(text(), '$')]",
-                    ".//div[contains(text(), '$')]",
-                    ".//p[contains(text(), '$')]",
-                    ".//strong[contains(text(), '$')]",
-                    ".//b[contains(text(), '$')]",
-                    ".//em[contains(text(), '$')]",
-                    ".//label[contains(text(), '$')]",
-                    # Broader searches
-                    ".//text()[contains(., '$')]/..",
-                    ".//*[@title and contains(@title, '$')]",
-                    ".//*[@aria-label and contains(@aria-label, '$')]"
-                ]
-                
-                rate = None
-                for rate_selector in rate_selectors:
-                    try:
-                        rate_element = element.find_element(By.XPATH, rate_selector)
-                        rate_text = rate_element.text.strip()
-                        if rate_text and ('$' in rate_text or '/hr' in rate_text or 'per hour' in rate_text):
-                            rate = rate_text
-                            break
-                    except NoSuchElementException:
-                        continue
-                
-                # If no rate found, try to get all text from the element and search for price patterns
-                if not rate:
-                    try:
-                        all_text = element.text
-                        import re
-                        # Look for price patterns like $25/hr, $30 per hour, etc.
-                        price_patterns = [
-                            r'\$\d+(?:\.\d{2})?(?:/hr|/hour|\s*per\s*hour)?',
-                            r'\d+(?:\.\d{2})?\s*(?:dollars?|USD)(?:/hr|/hour|\s*per\s*hour)?'
-                        ]
-                        for pattern in price_patterns:
-                            match = re.search(pattern, all_text, re.IGNORECASE)
-                            if match:
-                                rate = match.group(0)
-                                break
-                    except Exception as e:
-                        logger.debug(f"Error in regex rate extraction: {e}")
-                
-                # Final fallback: examine HTML structure for any price information
-                if not rate:
-                    try:
-                        # Get the full HTML of the element
-                        html_content = element.get_attribute('outerHTML')
-                        import re
-                        # Look for any dollar amounts in the HTML
-                        html_price_patterns = [
-                            r'\$\d+(?:\.\d{2})?(?:/hr|/hour|\s*per\s*hour)?',
-                            r'>\$\d+(?:\.\d{2})?<',
-                            r'price["\'][^>]*>\$?\d+(?:\.\d{2})?',
-                            r'rate["\'][^>]*>\$?\d+(?:\.\d{2})?'
-                        ]
-                        for pattern in html_price_patterns:
-                            match = re.search(pattern, html_content, re.IGNORECASE)
-                            if match:
-                                # Clean up the match to extract just the price
-                                price_match = re.search(r'\$?\d+(?:\.\d{2})?', match.group(0))
-                                if price_match:
-                                    rate = price_match.group(0)
-                                    if not rate.startswith('$'):
-                                        rate = '$' + rate
-                                    logger.debug(f"Found rate via HTML parsing: '{rate}'")
-                                    break
-                    except Exception as e:
-                        logger.debug(f"Error in HTML rate extraction: {e}")
-                
-                # Debug logging for rate extraction
-                if not rate:
-                    logger.debug(f"Rate extraction debug for tasker {i+1}:")
-                    logger.debug(f"  Element text: '{element.text[:200]}...'")
-                    # Try to find any element with dollar sign
-                    try:
-                        dollar_elements = element.find_elements(By.XPATH, ".//*[contains(text(), '$')]")
-                        for j, dollar_elem in enumerate(dollar_elements[:3]):
-                            logger.debug(f"  Dollar element {j+1}: '{dollar_elem.text}'")
-                        # Also log a snippet of the HTML for manual inspection
-                        html_snippet = element.get_attribute('outerHTML')[:300]
-                        logger.debug(f"  HTML snippet: {html_snippet}...")
-                    except Exception as e:
-                        logger.debug(f"  Debug error: {e}")
-                
-                # Try to get both name and rate, with enhanced fallback logic
-                if rate and not name:
-                    # If we have a rate but no name, try to find name in nearby elements
-                    try:
-                        # Look for name in parent or sibling elements
-                        parent = element.find_element(By.XPATH, "./..")
-                        for name_selector in name_selectors[:8]:  # Try more name selectors on parent
-                            try:
-                                name_element = parent.find_element(By.XPATH, name_selector)
-                                potential_name = name_element.text.strip()
-                                if potential_name and self.is_valid_person_name(potential_name):
-                                    name = potential_name
-                                    logger.debug(f"Found valid name in parent element: '{name}'")
-                                    break
-                            except NoSuchElementException:
-                                continue
-                    except Exception as e:
-                        logger.debug(f"Error finding name for rate: {e}")
-                
-                if name and not rate:
-                    # If we have a name but no rate, try to find rate in nearby elements  
-                    try:
-                        # Look for rate in parent or sibling elements
-                        parent = element.find_element(By.XPATH, "./..")
-                        for rate_selector in rate_selectors[:10]:  # Try first 10 rate selectors on parent
-                            try:
-                                rate_element = parent.find_element(By.XPATH, rate_selector)
-                                rate_text = rate_element.text.strip()
-                                if rate_text and ('$' in rate_text or '/hr' in rate_text):
-                                    rate = rate_text
-                                    break
-                            except NoSuchElementException:
-                                continue
-                    except Exception as e:
-                        logger.debug(f"Error finding rate for name: {e}")
-                
-                # Only add tasker if we have BOTH name and rate, or if we have a very high confidence single piece
-                if name and rate:
-                    # We have both name and rate - this is ideal
-                    taskers.append({
-                        'name': name,
-                        'hourly_rate': rate
-                    })
-                    logger.info(f"Added complete tasker: {name} - {rate}")
-                elif name and not rate:
-                    # We have name but no rate - only add if it's a very clear name
-                    if len(name.split()) >= 2 and any(char.isupper() for char in name):
-                        taskers.append({
-                            'name': name,
-                            'hourly_rate': 'Not listed'
-                        })
-                        logger.info(f"Added tasker with name only: {name} - Not listed")
-                elif rate and not name:
-                    # We have rate but no name - skip these to avoid "Unknown" entries
-                    logger.debug(f"Skipping rate-only element: {rate} (no name found)")
-                    continue
-                else:
-                    logger.debug(f"Skipping element {i+1}: no valid name or rate found")
-                    
-            except Exception as e:
-                logger.warning(f"Error extracting data for tasker element {i+1}: {e}")
-                continue
-                
+        # Log final results
+        logger.info(f"Successfully extracted {len(taskers)} taskers using improved algorithm")
+        
+        # Check for target names that were mentioned in the issue
+        target_names = ["Ivan T.", "Jay F.", "Maxim D.", "Andrey R."]
+        found_targets = []
+        
+        for target in target_names:
+            if any(target.lower() in tasker['name'].lower() for tasker in taskers):
+                found_targets.append(target)
+        
+        logger.info(f"Target names found: {found_targets}")
+        
         return taskers
+    
+    def debug_visible_names(self):
+        """Debug method to capture all visible text that looks like names on the page."""
+        logger.info("=== DEBUGGING VISIBLE NAMES ON PAGE ===")
+        try:
+            # Get all text elements that might contain names
+            text_elements = self.driver.find_elements(By.XPATH, "//*[text()]")
+            potential_names = []
+            
+            for element in text_elements:
+                try:
+                    if element.is_displayed():
+                        text = element.text.strip()
+                        # Look for text that might be names (contains letters, short, has spaces or dots)
+                        if (text and len(text) < 50 and 
+                            any(c.isalpha() for c in text) and
+                            (' ' in text or '.' in text) and
+                            not any(keyword in text.lower() for keyword in ['http', 'www', 'email', 'phone', 'address'])):
+                            potential_names.append(text)
+                except Exception:
+                    continue
+            
+            # Remove duplicates and sort
+            unique_names = list(set(potential_names))
+            unique_names.sort()
+            
+            logger.info(f"Found {len(unique_names)} potential names on page:")
+            for i, name in enumerate(unique_names[:50]):  # Show first 50
+                logger.info(f"  {i+1}. '{name}'")
+                
+            return unique_names
+            
+        except Exception as e:
+            logger.error(f"Error in debug_visible_names: {e}")
+            return []
     
     def debug_page_structure(self):
         """Debug method to inspect page structure for pagination elements."""
@@ -1218,7 +1160,6 @@ class TaskRabbitParser:
                             logger.debug(f"Pagination element: tag={tag_name}, text='{text}', href='{href}', class='{class_attr}'")
                             
                             # Extract page number from href
-                            import re
                             if 'page=' in href:
                                 page_match = re.search(r'page=(\d+)', href)
                                 if page_match:
@@ -1458,7 +1399,6 @@ class TaskRabbitParser:
                 current_url = self.driver.current_url
                 if 'page=' in current_url:
                     # Extract current page number from URL
-                    import re
                     page_match = re.search(r'page=(\d+)', current_url)
                     if page_match:
                         current_page = int(page_match.group(1))
@@ -1492,7 +1432,6 @@ class TaskRabbitParser:
                 ]
                 
                 current_url = self.driver.current_url
-                import re
                 current_page_match = re.search(r'page=(\d+)', current_url)
                 current_page = int(current_page_match.group(1)) if current_page_match else 1
                 
