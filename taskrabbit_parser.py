@@ -24,6 +24,24 @@ from selenium.common.exceptions import TimeoutException, NoSuchElementException
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+# Configuration constants - modify these to adjust behavior
+MAX_PAGES_FOR_TESTING = None       # Set to None to scan all pages, or number to limit pages
+
+# Sleep duration constants (in seconds) - modify these to adjust timing
+SLEEP_OVERLAY_REMOVAL = 1          # After removing overlays/popups
+SLEEP_IFRAME_REMOVAL = 0.5         # After removing iframe overlays
+SLEEP_CONTINUE_BUTTON = 3          # After clicking continue buttons
+SLEEP_PAGE_LOAD = 3                # General page loading wait
+SLEEP_SCROLL_WAIT = 1              # After scrolling elements into view
+SLEEP_ADDRESS_INPUT = 2            # After entering address
+SLEEP_ADDRESS_CONTINUE = 5         # After clicking continue from address
+SLEEP_FURNITURE_OPTION = 2         # After selecting furniture options
+SLEEP_SIZE_OPTION = 2              # After selecting size options
+SLEEP_TASK_DETAILS = 2             # After entering task details
+SLEEP_OPTIONS_COMPLETE = 5         # After completing all options
+SLEEP_PAGE_NAVIGATION = 5          # After navigating to new page
+SLEEP_CARD_LOADING = 8             # Waiting for tasker cards to load
+
 class TaskRabbitParser:
     def __init__(self, headless: bool = False, max_pages: int = None):
         """Initialize the TaskRabbit parser with Chrome WebDriver."""
@@ -78,7 +96,7 @@ class TaskRabbitParser:
                     # Try to remove the iframe entirely
                     self.driver.execute_script("arguments[0].remove();", iframe)
                     logger.info("Removed modal overlay iframe")
-                    time.sleep(1)
+                    time.sleep(SLEEP_OVERLAY_REMOVAL)
         except Exception as e:
             logger.info(f"No iframe overlays found or couldn't remove: {e}")
         
@@ -90,7 +108,7 @@ class TaskRabbitParser:
                     logger.info("Found iframe container, removing...")
                     self.driver.execute_script("arguments[0].remove();", container)
                     logger.info("Removed iframe container")
-                    time.sleep(1)
+                    time.sleep(SLEEP_OVERLAY_REMOVAL)
         except Exception as e:
             logger.info(f"No iframe containers found: {e}")
         
@@ -129,13 +147,13 @@ class TaskRabbitParser:
                         try:
                             element.click()
                             logger.info(f"Closed overlay/popup with selector: {selector}")
-                            time.sleep(1)
+                            time.sleep(SLEEP_OVERLAY_REMOVAL)
                         except Exception as e:
                             # Try JavaScript click if regular click fails
                             try:
                                 self.driver.execute_script("arguments[0].click();", element)
                                 logger.info(f"Closed overlay/popup with JavaScript: {selector}")
-                                time.sleep(1)
+                                time.sleep(SLEEP_OVERLAY_REMOVAL)
                             except Exception:
                                 logger.debug(f"Failed to close overlay with JavaScript: {e}")
                                 continue
@@ -147,7 +165,7 @@ class TaskRabbitParser:
         try:
             self.driver.find_element(By.TAG_NAME, 'body').send_keys(Keys.ESCAPE)
             logger.info("Pressed ESC key to close any modals")
-            time.sleep(1)
+            time.sleep(SLEEP_OVERLAY_REMOVAL)
         except Exception as e:
             logger.info(f"Could not press ESC key: {e}")
     
@@ -173,7 +191,7 @@ class TaskRabbitParser:
                     if iframe.is_displayed():
                         logger.info(f"Removing iframe overlay: {iframe.get_attribute('id')} / {iframe.get_attribute('class')}")
                         self.driver.execute_script("arguments[0].remove();", iframe)
-                        time.sleep(0.5)
+                        time.sleep(SLEEP_IFRAME_REMOVAL)
         except Exception as e:
             logger.info(f"Error removing iframe overlays: {e}")
         
@@ -199,7 +217,7 @@ class TaskRabbitParser:
                             if rect['width'] > 500 and rect['height'] > 300:  # Large overlay
                                 logger.info(f"Removing large overlay container: {container.get_attribute('class')}")
                                 self.driver.execute_script("arguments[0].remove();", container)
-                                time.sleep(0.5)
+                                time.sleep(SLEEP_IFRAME_REMOVAL)
                         except Exception as e:
                             logger.debug(f"Error removing element: {e}")
                             continue
@@ -243,7 +261,7 @@ class TaskRabbitParser:
                 continue_btn = self.wait.until(EC.element_to_be_clickable((By.XPATH, selector)))
                 logger.info(f"Found Continue button with selector: {selector}")
                 continue_btn.click()
-                time.sleep(3)
+                time.sleep(SLEEP_CONTINUE_BUTTON)
                 return True
             except TimeoutException:
                 continue
@@ -308,14 +326,14 @@ class TaskRabbitParser:
                     # Try scrolling into view and clicking
                     try:
                         self.driver.execute_script("arguments[0].scrollIntoView(true);", book_now)
-                        time.sleep(1)
+                        time.sleep(SLEEP_OVERLAY_REMOVAL)
                         self.driver.execute_script("arguments[0].click();", book_now)
                         logger.info("Successfully clicked Book Now button after scrolling")
                     except Exception as e3:
                         logger.error(f"All click methods failed: {e3}")
                         raise Exception("Could not click Book Now button")
             
-            time.sleep(3)
+            time.sleep(SLEEP_CONTINUE_BUTTON)
             self.debug_page_elements("After clicking start booking")
         else:
             logger.error("Could not find booking button")
@@ -343,7 +361,7 @@ class TaskRabbitParser:
                 if start_btn.is_displayed():
                     logger.info(f"Found start booking button: {selector}")
                     start_btn.click()
-                    time.sleep(3)
+                    time.sleep(SLEEP_CONTINUE_BUTTON)
                     self.debug_page_elements("After clicking start booking")
                     break
             except NoSuchElementException:
@@ -379,7 +397,7 @@ class TaskRabbitParser:
         
         address_field.clear()
         address_field.send_keys("6619 10th Ave, brooklyn, 11219, NY")
-        time.sleep(2)
+        time.sleep(SLEEP_ADDRESS_INPUT)
         
         # Click Continue button
         continue_selectors = [
@@ -405,7 +423,7 @@ class TaskRabbitParser:
             raise Exception("Continue button not found")
         
         continue_btn.click()
-        time.sleep(5)
+        time.sleep(SLEEP_ADDRESS_CONTINUE)
         self.debug_page_elements("After clicking Continue")
         
     def select_furniture_options(self):
@@ -497,7 +515,7 @@ class TaskRabbitParser:
                     # For buttons or other elements
                     both_option.click()
                 
-                time.sleep(2)
+                time.sleep(SLEEP_FURNITURE_OPTION)
                 logger.info("Successfully selected 'Both IKEA and non-IKEA furniture' option")
             except Exception as e:
                 logger.warning(f"Failed to click furniture option: {e}")
@@ -591,13 +609,13 @@ class TaskRabbitParser:
                     # For buttons or other elements
                     medium_option.click()
                 
-                time.sleep(2)
+                time.sleep(SLEEP_SIZE_OPTION)
                 logger.info("Successfully selected 'Medium - Est. 2-3 hrs' option")
                 
                 # Scroll down to make sure Continue button is visible
                 logger.info("Scrolling down to reveal Continue button...")
                 self.driver.execute_script("window.scrollBy(0, 300);")
-                time.sleep(1)
+                time.sleep(SLEEP_SCROLL_WAIT)
                 
                 self.click_continue_button()
             except Exception as e:
@@ -673,13 +691,13 @@ class TaskRabbitParser:
                 # Clear the field and enter "build stool"
                 task_details_field.clear()
                 task_details_field.send_keys("build stool")
-                time.sleep(2)
+                time.sleep(SLEEP_TASK_DETAILS)
                 logger.info("Successfully entered 'build stool' in task details field")
                 
                 # Scroll down to make sure Continue button is visible
                 logger.info("Scrolling down to reveal Continue button...")
                 self.driver.execute_script("window.scrollBy(0, 300);")
-                time.sleep(1)
+                time.sleep(SLEEP_SCROLL_WAIT)
                 
                 self.click_continue_button()
             except Exception as e:
@@ -705,13 +723,9 @@ class TaskRabbitParser:
             
             logger.info("Proceeding without entering task details")
         
-        time.sleep(5)
+        time.sleep(SLEEP_OPTIONS_COMPLETE)
         self.debug_page_elements("After furniture options selection")
-        
-    def sort_by_recommended(self):
-        """Skip sorting - taskers are already sorted by Recommended by default."""
-        logger.info("Skipping sort step - taskers are already sorted by Recommended by default")
-            
+               
     def is_valid_person_name(self, name: str) -> bool:
         """Check if a string looks like a valid person name."""
         if not name or len(name) < 3:
@@ -778,7 +792,7 @@ class TaskRabbitParser:
                 if not success:
                     logger.warning(f"Failed to navigate to page {page_num}, skipping...")
                     continue
-                time.sleep(5)  # Wait for page to load after clicking
+                time.sleep(SLEEP_PAGE_NAVIGATION)  # Wait for page to load after clicking
             
             # Debug: capture all visible names before extraction
             self.debug_visible_names()
@@ -865,7 +879,7 @@ class TaskRabbitParser:
         logger.info(f"Page title: {self.driver.title}")
         
         # Wait for tasker cards to load
-        time.sleep(8)  # Increased wait time for better loading
+        time.sleep(SLEEP_CARD_LOADING)  # Increased wait time for better loading
         
         # Find tasker cards using the mobile card selector from HTML analysis
         tasker_card_selector = "//div[@data-testid='tasker-card-mobile']"
@@ -1173,16 +1187,6 @@ class TaskRabbitParser:
         
         # Log final results
         logger.info(f"Successfully extracted {len(taskers)} taskers from current page")
-        
-        # Check for target names that were mentioned in the issue
-        target_names = ["Ivan T.", "Jay F.", "Maxim D.", "Andrey R."]
-        found_targets = []
-        
-        for target in target_names:
-            if any(target.lower() in tasker['name'].lower() for tasker in taskers):
-                found_targets.append(target)
-        
-        logger.info(f"Target names found: {found_targets}")
         
         return taskers
     
@@ -1504,7 +1508,7 @@ class TaskRabbitParser:
                             element.click()
                             
                             # Wait for page to load and verify navigation
-                            time.sleep(3)
+                            time.sleep(SLEEP_CONTINUE_BUTTON)
                             
                             # Verify that we've navigated to the correct page
                             current_url = self.driver.current_url
@@ -1725,7 +1729,6 @@ class TaskRabbitParser:
             self.navigate_to_furniture_assembly()
             self.enter_address_details()
             self.select_furniture_options()
-            self.sort_by_recommended()
             
             # Extract and save data from all pages
             taskers = self.extract_tasker_data()
@@ -1745,8 +1748,5 @@ class TaskRabbitParser:
                 logger.info("Browser closed")
 
 if __name__ == "__main__":
-    # Configuration options
-    MAX_PAGES_FOR_TESTING = 2  # Set to None to scan all pages when script is fully ready
-    
     parser = TaskRabbitParser(headless=False, max_pages=MAX_PAGES_FOR_TESTING)
     parser.run()

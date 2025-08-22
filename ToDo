@@ -1,0 +1,7 @@
+Add 2 Hour minimum flag
+Can't find tasks Max Handyman A in the csv file, but i saw him on the website on 1 page
+save data about hour rate to csv without /hr 
+Denys A from the first page has 140 assembly tasks overall data, but it appears as None in csv file
+Add Elite status to data
+Nurbek A has 1 furniture assembly task but no rating and reviews, but shows in csv file as Nurbek A.,$30.97/hr,Not found,Not found,Not found,None; must be shown as Nurbek A.,$30.97/hr,Not found,Not found,1,None
+Add NewTasker status to data
