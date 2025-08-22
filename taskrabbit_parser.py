@@ -1014,14 +1014,27 @@ class TaskRabbitParser:
                     except Exception:
                         continue
                 
-                # If rate still not found, try extracting from card text directly
+                # If rate still not found, try more aggressive extraction methods
                 if rate == "Rate not found":
                     try:
+                        # Strategy 1: Extract from card text
                         card_text = card.text
                         import re
                         rate_matches = re.findall(r'\$\d+\.\d+/hr', card_text)
                         if rate_matches:
                             rate = rate_matches[0]
+                        else:
+                            # Strategy 2: Extract from innerHTML
+                            card_html = card.get_attribute('innerHTML')
+                            if card_html:
+                                html_rate_matches = re.findall(r'\$\d+\.\d+/hr', card_html)
+                                if html_rate_matches:
+                                    rate = html_rate_matches[0]
+                                else:
+                                    # Strategy 3: Look for any price pattern in HTML
+                                    price_matches = re.findall(r'\$(\d+\.\d+)', card_html)
+                                    if price_matches:
+                                        rate = f"${price_matches[0]}/hr"
                     except Exception:
                         pass
                 
@@ -1049,13 +1062,21 @@ class TaskRabbitParser:
                         if review_rating != "Not found":
                             break
                     
-                    # If not found, try extracting from card text
+                    # If not found, try extracting from card text and HTML
                     if review_rating == "Not found":
                         card_text = card.text
                         match = re.search(r'(\d+\.\d+)\s*\((\d+)\s*review', card_text)
                         if match:
                             review_rating = match.group(1)
                             review_count = match.group(2)
+                        else:
+                            # Try innerHTML extraction
+                            card_html = card.get_attribute('innerHTML')
+                            if card_html:
+                                html_match = re.search(r'(\d+\.\d+)\s*\((\d+)\s*review', card_html)
+                                if html_match:
+                                    review_rating = html_match.group(1)
+                                    review_count = html_match.group(2)
                 except Exception:
                     pass
                 
@@ -1071,10 +1092,41 @@ class TaskRabbitParser:
                     if furniture_match:
                         furniture_tasks = furniture_match.group(1)
                     
-                    # Look for "124 Assembly tasks overall"
-                    overall_match = re.search(r'(\d+)\s+Assembly tasks overall', card_text)
-                    if overall_match:
-                        overall_tasks = overall_match.group(1)
+                    # Look for overall tasks with multiple patterns
+                    overall_patterns = [
+                        r'(\d+)\s+Assembly tasks overall',
+                        r'(\d+)\s+tasks overall',
+                        r'(\d+)\s+overall tasks',
+                        r'(\d+)\s+total tasks',
+                        r'(\d+)\s+tasks completed'
+                    ]
+                    
+                    for pattern in overall_patterns:
+                        overall_match = re.search(pattern, card_text, re.IGNORECASE)
+                        if overall_match:
+                            overall_tasks = overall_match.group(1)
+                            break
+                    
+                    # If not found in text, try innerHTML
+                    if furniture_tasks == "Not found" or overall_tasks == "Not found":
+                        card_html = card.get_attribute('innerHTML')
+                        if card_html:
+                            if furniture_tasks == "Not found":
+                                html_furniture_match = re.search(r'(\d+)\s+Furniture Assembly tasks', card_html)
+                                if html_furniture_match:
+                                    furniture_tasks = html_furniture_match.group(1)
+                            
+                            if overall_tasks == "Not found":
+                                # Try multiple patterns in HTML as well
+                                for pattern in overall_patterns:
+                                    html_overall_match = re.search(pattern, card_html, re.IGNORECASE)
+                                    if html_overall_match:
+                                        overall_tasks = html_overall_match.group(1)
+                                        break
+                                
+                                # If still not found, set to None instead of unreliable fallback
+                                if overall_tasks == "Not found":
+                                    overall_tasks = "None"
                 except Exception:
                     pass
                 

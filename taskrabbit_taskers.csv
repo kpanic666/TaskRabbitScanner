@@ -1,30 +1,30 @@
 name,hourly_rate,review_rating,review_count,furniture_tasks,overall_tasks
-Ivan T.,Rate not found,Not found,Not found,Not found,Not found
-Jay F.,Rate not found,Not found,Not found,Not found,Not found
-Maxim D.,Rate not found,Not found,Not found,Not found,Not found
-Aleksandr B.,Rate not found,Not found,Not found,Not found,Not found
-Yevhen H.,Rate not found,Not found,Not found,Not found,Not found
-Ruslan M.,Rate not found,Not found,Not found,Not found,Not found
-Viktor G.,Rate not found,Not found,Not found,Not found,Not found
-Timmy G.,Rate not found,Not found,Not found,Not found,Not found
-Evgenii B.,Rate not found,Not found,Not found,Not found,Not found
-DMITRY L.,Rate not found,Not found,Not found,Not found,Not found
-Andrey R.,Rate not found,Not found,Not found,Not found,Not found
-Denys A.,Rate not found,Not found,Not found,Not found,Not found
-Max A.,Rate not found,Not found,Not found,Not found,Not found
-Aktan C.,Rate not found,Not found,Not found,Not found,Not found
-Joshua T.,Rate not found,Not found,Not found,Not found,Not found
-Diana S.,Rate not found,Not found,Not found,Not found,Not found
-Tsyren S.,Rate not found,Not found,Not found,Not found,Not found
-Adam U.,Rate not found,Not found,Not found,Not found,Not found
-Konstantin K.,Rate not found,Not found,Not found,Not found,Not found
-Patrick H.,Rate not found,Not found,Not found,Not found,Not found
-Aisen G.,Rate not found,Not found,Not found,Not found,Not found
-Oleksiy R.,Rate not found,Not found,Not found,Not found,Not found
-Art D.,Rate not found,Not found,Not found,Not found,Not found
-Ewart C.,Rate not found,Not found,Not found,Not found,Not found
-Yaro R.,Rate not found,Not found,Not found,Not found,Not found
-Denys B.,Rate not found,Not found,Not found,Not found,Not found
-Viktor O.,Rate not found,Not found,Not found,Not found,Not found
-Adam I.,Rate not found,Not found,Not found,Not found,Not found
-Sorbon Q.,Rate not found,Not found,Not found,Not found,Not found
+Ivan T.,$39.23/hr,5.0,65,142,124
+Jay F.,$67.10/hr,5.0,1249,2417,2411
+Maxim D.,$67.10/hr,5.0,555,1113,1109
+Aleksandr B.,$36.13/hr,5.0,24,50,43
+Yevhen H.,$55.75/hr,4.9,65,117,102
+Ruslan M.,$68.13/hr,4.9,371,416,715
+Viktor G.,$41.29/hr,5.0,221,377,374
+Timmy G.,$67.10/hr,5.0,592,999,1039
+Evgenii B.,$52.65/hr,5.0,60,102,86
+DMITRY L.,$41.29/hr,5.0,220,387,391
+Andrey R.,$39.23/hr,5.0,48,78,None
+Denys A.,$67.10/hr,5.0,65,140,None
+Max A.,$36.13/hr,5.0,17,25,13
+Aktan C.,$53.68/hr,5.0,68,115,100
+Joshua T.,$39.23/hr,5.0,22,36,20
+Diana S.,$41.29/hr,5.0,240,372,None
+Tsyren S.,$61.94/hr,5.0,399,354,797
+Adam U.,$48.52/hr,5.0,29,74,None
+Konstantin K.,$55.75/hr,4.9,52,96,62
+Patrick H.,$61.94/hr,5.0,1333,2021,2131
+Aisen G.,$56.78/hr,5.0,142,266,245
+Oleksiy R.,$43.36/hr,4.9,133,263,255
+Art D.,$54.71/hr,5.0,47,79,68
+Ewart C.,$56.78/hr,5.0,74,96,91
+Yaro R.,$45.42/hr,5.0,21,25,None
+Denys B.,$51.62/hr,5.0,170,258,334
+Viktor O.,$41.29/hr,5.0,287,442,None
+Adam I.,$77.43/hr,5.0,778,1213,1385
+Sorbon Q.,$41.29/hr,5.0,4,8,6
