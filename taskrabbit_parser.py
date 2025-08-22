@@ -21,16 +21,18 @@ from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 class TaskRabbitParser:
-    def __init__(self, headless: bool = False):
+    def __init__(self, headless: bool = False, max_pages: int = None):
         """Initialize the TaskRabbit parser with Chrome WebDriver."""
         self.base_url = "https://www.taskrabbit.com"
         self.driver = None
         self.wait = None
         self.headless = headless
+        self.max_pages = max_pages  # Limit number of pages to process (None = all pages)
+        self.csv_filename = "taskrabbit_taskers.csv"
         
     def setup_driver(self):
         """Setup Chrome WebDriver with appropriate options."""
@@ -710,64 +712,45 @@ class TaskRabbitParser:
         """Skip sorting - taskers are already sorted by Recommended by default."""
         logger.info("Skipping sort step - taskers are already sorted by Recommended by default")
             
-    def is_valid_person_name(self, text: str) -> bool:
-        """Validate if the extracted text is likely a person's name."""
-        if not text or len(text) < 2:
+    def is_valid_person_name(self, name: str) -> bool:
+        """Check if a string looks like a valid person name."""
+        if not name or len(name) < 3:
             return False
         
-        # Filter out common non-name phrases
-        invalid_phrases = [
-            "how i can help",
-            "about me",
-            "my experience",
-            "what i do",
-            "services",
-            "skills",
-            "description",
-            "profile",
-            "bio",
-            "overview",
-            "details",
-            "info",
-            "contact",
-            "book now",
-            "view profile",
-            "hire me",
-            "get quote",
-            "message",
-            "reviews",
-            "rating",
-            "stars",
-            "feedback",
-            "testimonial"
-        ]
-        
-        text_lower = text.lower().strip()
-        
-        # Check if it contains invalid phrases
-        for phrase in invalid_phrases:
-            if phrase in text_lower:
-                return False
-        
-        # Check if it contains colons (like "How I can help:")
-        if ":" in text:
+        # Should contain at least one space and end with a period (initial)
+        if ' ' not in name or not name.endswith('.'):
             return False
         
-        # Check if it's too long (names are usually short)
-        if len(text) > 50:
+        # Should not contain numbers or special characters (except period)
+        if any(char.isdigit() or char in '!@#$%^&*()_+=[]{}|;:,<>?/~`' for char in name.replace('.', '')):
             return False
         
-        # Check if it contains mostly numbers or special characters
-        if len([c for c in text if c.isalnum()]) < len(text) * 0.5:
+        # Should be reasonable length
+        if len(name) > 50:
             return False
         
-        # Check if it looks like a typical name pattern (letters, spaces, dots, apostrophes)
-        name_pattern = r"^[A-Za-z\s\.\'\-]+$"
-        if not re.match(name_pattern, text):
+        return True
+    
+    def is_potential_name(self, text: str) -> bool:
+        """More flexible name validation for initial extraction."""
+        if not text or len(text) < 3 or len(text) > 50:
             return False
         
-        # Must contain at least one letter
-        if not any(c.isalpha() for c in text):
+        # Should end with a period (initial)
+        if not text.endswith('.'):
+            return False
+        
+        # Should contain at least one space
+        if ' ' not in text:
+            return False
+        
+        # Should not contain obvious non-name content
+        if any(word in text.lower() for word in ['review', 'task', 'hour', '$', '/hr', 'read', 'more', 'select', 'continue']):
+            return False
+        
+        # Should have reasonable word count (2-4 words)
+        word_count = len(text.split())
+        if word_count < 2 or word_count > 4:
             return False
         
         return True
@@ -817,36 +800,58 @@ class TaskRabbitParser:
         """Extract all visible text that might be tasker names and rates."""
         logger.debug("Extracting all visible text...")
         
-        # Get all text elements
-        all_elements = self.driver.find_elements(By.XPATH, "//*[text()]")
-        
         potential_names = []
         rates = []
         
-        for element in all_elements:
+        # Extract names from span elements (tasker name buttons)
+        name_selectors = [
+            ".//span[contains(@class, 'mui-5xjf89')]",
+            ".//button[contains(@class, 'TRTextButtonPrimary-Root') or contains(@class, 'mui-1pbxn54')]",
+            ".//button[contains(@class, 'MuiButton-textPrimary')]"
+        ]
+        
+        for selector in name_selectors:
             try:
-                if element.is_displayed():
-                    text = element.text.strip()
-                    
-                    # Look for names (contains dot and is short)
-                    if (text and 
-                        '.' in text and 
-                        len(text) < 50 and 
-                        len(text.split()) <= 3 and  # Max 3 words
-                        any(c.isalpha() for c in text) and
-                        not any(keyword in text.lower() for keyword in ['http', 'www', 'email', 'phone', 'click', 'book', 'view', 'how', 'help', 'about', 'task', 'review', 'experience'])):
-                        potential_names.append(text)
-                    
-                    # Look for rates
-                    if '$' in text and '/hr' in text and len(text) < 20:
-                        rates.append(text)
-                        
-            except Exception:
+                name_elements = self.driver.find_elements(By.XPATH, selector)
+                for element in name_elements:
+                    if element.is_displayed():
+                        text = element.text.strip()
+                        if (text and 
+                            '.' in text and 
+                            len(text) < 50 and 
+                            len(text.split()) <= 3 and  # Max 3 words
+                            any(c.isalpha() for c in text) and
+                            not any(keyword in text.lower() for keyword in ['select', 'continue', 'read', 'more', 'book', 'view', 'how', 'help', 'about', 'task', 'review', 'experience'])):
+                            potential_names.append(text)
+            except Exception as e:
+                logger.debug(f"Error extracting names with selector {selector}: {e}")
+                continue
+        
+        # Extract rates from specific rate elements
+        rate_selectors = [
+            "//div[contains(@class, 'mui-loubxv')]",  # Primary rate selector from HTML analysis
+            "//div[contains(@class, 'rate') and contains(text(), '$') and contains(text(), '/hr')]",
+            "//span[contains(text(), '$') and contains(text(), '/hr')]",
+            "//div[contains(text(), '$') and contains(text(), '/hr')]"
+        ]
+        
+        for selector in rate_selectors:
+            try:
+                rate_elements = self.driver.find_elements(By.XPATH, selector)
+                for element in rate_elements:
+                    if element.is_displayed():
+                        text = element.text.strip()
+                        if '$' in text and '/hr' in text and len(text) < 20:
+                            rates.append(text)
+            except Exception as e:
+                logger.debug(f"Error extracting rates with selector {selector}: {e}")
                 continue
         
         # Remove duplicates
         potential_names = list(set(potential_names))
         rates = list(set(rates))
+        
+        logger.info(f"Extracted {len(potential_names)} potential names and {len(rates)} rates")
         
         return potential_names, rates
 
@@ -860,89 +865,251 @@ class TaskRabbitParser:
         logger.info(f"Page title: {self.driver.title}")
         
         # Wait for tasker cards to load
-        time.sleep(5)
+        time.sleep(8)  # Increased wait time for better loading
         
-        # Use improved extraction method
-        names, rates = self.extract_all_visible_text()
+        # Find tasker cards using the mobile card selector from HTML analysis
+        tasker_card_selector = "//div[@data-testid='tasker-card-mobile']"
+        tasker_cards = self.driver.find_elements(By.XPATH, tasker_card_selector)
         
-        logger.info(f"Found {len(names)} potential names and {len(rates)} rates")
+        if not tasker_cards:
+            # Fallback to other selectors
+            fallback_selectors = [
+                "//div[contains(@class, 'mui-1m4n54b')]",  # From HTML analysis
+                "//div[contains(@data-testid, 'tasker')]",
+                "//div[contains(@class, 'tasker')]",
+                "//div[contains(@class, 'card')]"
+            ]
+            
+            for selector in fallback_selectors:
+                tasker_cards = self.driver.find_elements(By.XPATH, selector)
+                if tasker_cards:
+                    logger.info(f"Found {len(tasker_cards)} tasker cards with fallback selector: {selector}")
+                    break
+        else:
+            logger.info(f"Found {len(tasker_cards)} tasker cards with primary selector")
         
-        # Filter out rates that are mixed in with names
-        clean_names = []
-        for name in names:
-            if not ('$' in name and '/hr' in name):  # Exclude rates from names list
-                clean_names.append(name)
+        if not tasker_cards:
+            logger.error("No tasker cards found on page")
+            return []
         
-        logger.info(f"Filtered to {len(clean_names)} clean names")
+        # Limit to 15 taskers per page as specified
+        if len(tasker_cards) > 15:
+            logger.info(f"Found {len(tasker_cards)} cards, limiting to 15 per page as specified")
+            tasker_cards = tasker_cards[:15]
+        logger.info(f"Processing {len(tasker_cards)} tasker cards")
         
-        # Find tasker cards/elements with multiple selectors
-        tasker_selectors = [
-            "//div[contains(@data-testid, 'tasker')]",  # Primary working selector
-            "//div[contains(@class, 'tasker')]",
-            "//div[contains(@class, 'card')]",
-            "//div[contains(@class, 'TaskerCard')]",
-            "//div[contains(@class, 'provider')]",
-            "//div[contains(@class, 'worker')]",
-            "//article",
-            "//div[contains(@class, 'profile')]"
-        ]
-        
-        # Try container-based pairing first
-        tasker_elements = []
-        for selector in tasker_selectors:
-            tasker_elements = self.driver.find_elements(By.XPATH, selector)
-            if tasker_elements:
-                logger.info(f"Found {len(tasker_elements)} tasker elements with selector: {selector}")
+        # Extract name and rate from each card
+        for i, card in enumerate(tasker_cards):
+            try:
+                # Extract name from span within the card (names are in review sections)
+                name = "Name not found"
+                name_selectors = [
+                    ".//button[contains(@class, 'mui-1pbxn54')]",  # Primary: Tasker name buttons
+                    ".//button[contains(@class, 'TRTextButtonPrimary-Root')]",  # Secondary: Button fallback
+                    ".//span[contains(@class, 'mui-5xjf89')]",  # Tertiary: Review names (not tasker names)
+                    ".//h3",  # Generic heading fallback
+                    ".//*[text()[contains(., '.') and string-length(.) < 20]]",  # Any element with dot pattern
+                ]
                 
-                # Try to pair names and rates within containers
-                for i, element in enumerate(tasker_elements):
+                for selector in name_selectors:
                     try:
-                        container_text = element.text
-                        
-                        # Look for name in this container (use clean names)
-                        container_name = None
-                        for name in clean_names:
-                            if name in container_text:
-                                container_name = name
-                                break
-                        
-                        # Look for rate in this container  
-                        container_rate = None
-                        for rate in rates:
-                            if rate in container_text:
-                                container_rate = rate
-                                break
-                        
-                        if container_name and container_rate:
-                            taskers.append({
-                                'name': container_name,
-                                'hourly_rate': container_rate
-                            })
-                            logger.info(f"Container-paired: {container_name} - {container_rate}")
-                            
+                        name_elements = card.find_elements(By.XPATH, selector)
+                        for name_element in name_elements:
+                            if name_element and name_element.is_displayed():
+                                name_text = name_element.text.strip()
+                                # More flexible name validation
+                                if self.is_potential_name(name_text):
+                                    name = name_text
+                                    break
+                        if name != "Name not found":
+                            break
                     except Exception:
                         continue
                 
-                if taskers:
-                    break  # Found some taskers, stop trying other selectors
-        
-        # If container-based pairing didn't work, pair all clean names with available rates
-        if not taskers and len(clean_names) > 0:
-            logger.info("Using position-based pairing for all clean names...")
-            for i, name in enumerate(clean_names):
-                if i < len(rates):
-                    rate = rates[i]
-                else:
-                    rate = "Rate not found"
+                # If still not found, try more aggressive extraction approaches
+                if name == "Name not found":
+                    try:
+                        # Strategy 1: Extract from all card text using regex
+                        card_text = card.text
+                        import re
+                        # Look for name patterns: "FirstName L." or "FIRSTNAME L." 
+                        name_patterns = re.findall(r'\b[A-Z][a-z]+ [A-Z]\.|\b[A-Z][A-Z]+ [A-Z]\.', card_text)
+                        if name_patterns:
+                            name = name_patterns[0]
+                        else:
+                            # Strategy 2: Look for any text element with name pattern
+                            all_text_elements = card.find_elements(By.XPATH, ".//*[text()]")
+                            for elem in all_text_elements:
+                                elem_text = elem.text.strip()
+                                if self.is_potential_name(elem_text):
+                                    name = elem_text
+                                    break
+                            
+                            # Strategy 3: Look for specific patterns in card HTML
+                            if name == "Name not found":
+                                # Try to find names in the card's innerHTML
+                                card_html = card.get_attribute('innerHTML')
+                                if card_html:
+                                    # Look for names in button text or span text
+                                    html_name_patterns = re.findall(r'>([A-Z][a-z]+ [A-Z]\.)<|>([A-Z][A-Z]+ [A-Z]\.)<', card_html)
+                                    for pattern_match in html_name_patterns:
+                                        potential_name = pattern_match[0] or pattern_match[1]
+                                        if potential_name and self.is_potential_name(potential_name):
+                                            name = potential_name
+                                            break
+                    except Exception as e:
+                        logger.debug(f"Error in fallback name extraction: {e}")
+                        pass
                 
-                taskers.append({
+                if name == "Name not found":
+                    # Debug: Show what text is actually in this card
+                    try:
+                        card_text = card.text.strip()
+                        logger.warning(f"Could not find valid name in card {i+1}. Card text preview: '{card_text[:200]}...'")
+                        
+                        # Debug: Show all buttons in this card
+                        all_buttons = card.find_elements(By.XPATH, ".//button")
+                        logger.debug(f"Card {i+1} has {len(all_buttons)} buttons:")
+                        for btn_idx, btn in enumerate(all_buttons[:5]):  # Show first 5 buttons
+                            try:
+                                btn_text = btn.text.strip()
+                                if btn_text:
+                                    logger.debug(f"  Button {btn_idx+1}: '{btn_text}' (classes: {btn.get_attribute('class')})")
+                            except Exception:
+                                pass
+                    except Exception as e:
+                        logger.debug(f"Error debugging card {i+1}: {e}")
+                    continue
+                
+                # Additional validation with is_valid_person_name
+                if not self.is_valid_person_name(name):
+                    logger.warning(f"Invalid name format in card {i+1}: '{name}'")
+                    continue
+                
+                # Extract rate from rate element within the card
+                rate = "Rate not found"
+                rate_selectors = [
+                    ".//div[contains(@class, 'mui-loubxv')]",  # Primary rate selector from HTML analysis
+                    ".//*[contains(text(), '$') and contains(text(), '/hr')]",  # Direct text search
+                    ".//*[contains(text(), '$')]",  # Any element with $
+                    ".//div[contains(@class, 'rate')]",
+                    ".//span[contains(text(), '$')]"
+                ]
+                
+                for selector in rate_selectors:
+                    try:
+                        rate_elements = card.find_elements(By.XPATH, selector)
+                        for rate_element in rate_elements:
+                            if rate_element and rate_element.is_displayed():
+                                rate_text = rate_element.text.strip()
+                                # Look for rate pattern like $39.23/hr
+                                if '$' in rate_text and '/hr' in rate_text and len(rate_text) < 20:
+                                    # Validate it's a proper rate format
+                                    import re
+                                    if re.search(r'\$\d+\.\d+/hr', rate_text):
+                                        rate = rate_text
+                                        break
+                        if rate != "Rate not found":
+                            break
+                    except Exception:
+                        continue
+                
+                # If rate still not found, try extracting from card text directly
+                if rate == "Rate not found":
+                    try:
+                        card_text = card.text
+                        import re
+                        rate_matches = re.findall(r'\$\d+\.\d+/hr', card_text)
+                        if rate_matches:
+                            rate = rate_matches[0]
+                    except Exception:
+                        pass
+                
+                # Extract review rating and count
+                review_rating = "Not found"
+                review_count = "Not found"
+                try:
+                    # Look for review pattern like "5.0 (64 reviews)"
+                    review_selectors = [
+                        ".//*[contains(text(), '(') and contains(text(), 'review')]",
+                        ".//*[contains(text(), '★') or contains(text(), '⭐')]"
+                    ]
+                    
+                    for selector in review_selectors:
+                        review_elements = card.find_elements(By.XPATH, selector)
+                        for elem in review_elements:
+                            text = elem.text.strip()
+                            import re
+                            # Match pattern like "5.0 (64 reviews)" or "★ 5.0 (64 reviews)"
+                            match = re.search(r'(\d+\.\d+)\s*\((\d+)\s*review', text)
+                            if match:
+                                review_rating = match.group(1)
+                                review_count = match.group(2)
+                                break
+                        if review_rating != "Not found":
+                            break
+                    
+                    # If not found, try extracting from card text
+                    if review_rating == "Not found":
+                        card_text = card.text
+                        match = re.search(r'(\d+\.\d+)\s*\((\d+)\s*review', card_text)
+                        if match:
+                            review_rating = match.group(1)
+                            review_count = match.group(2)
+                except Exception:
+                    pass
+                
+                # Extract task counts
+                furniture_tasks = "Not found"
+                overall_tasks = "Not found"
+                try:
+                    card_text = card.text
+                    import re
+                    
+                    # Look for "137 Furniture Assembly tasks"
+                    furniture_match = re.search(r'(\d+)\s+Furniture Assembly tasks', card_text)
+                    if furniture_match:
+                        furniture_tasks = furniture_match.group(1)
+                    
+                    # Look for "124 Assembly tasks overall"
+                    overall_match = re.search(r'(\d+)\s+Assembly tasks overall', card_text)
+                    if overall_match:
+                        overall_tasks = overall_match.group(1)
+                except Exception:
+                    pass
+                
+                # Create tasker entry
+                tasker = {
                     'name': name,
-                    'hourly_rate': rate
-                })
-                logger.info(f"Position-paired: {name} - {rate}")
+                    'hourly_rate': rate,
+                    'review_rating': review_rating,
+                    'review_count': review_count,
+                    'furniture_tasks': furniture_tasks,
+                    'overall_tasks': overall_tasks
+                }
+                
+                taskers.append(tasker)
+                logger.info(f"Card {i+1}: {name} - {rate} - Rating: {review_rating} ({review_count} reviews) - Tasks: {furniture_tasks} furniture, {overall_tasks} overall")
+                
+                # Debug: log card structure if rate not found
+                if rate == "Rate not found":
+                    logger.debug(f"Card {i+1} text sample: {card.text[:200]}...")
+                    # Try to find any text with $ symbol
+                    try:
+                        dollar_elements = card.find_elements(By.XPATH, ".//*[contains(text(), '$')]")
+                        if dollar_elements:
+                            logger.debug(f"Found {len(dollar_elements)} elements with $ in card {i+1}")
+                            for elem in dollar_elements[:3]:  # Show first 3
+                                logger.debug(f"  $ element: '{elem.text.strip()}'")
+                    except Exception:
+                        pass
+                
+            except Exception as e:
+                logger.warning(f"Error processing tasker card {i+1}: {e}")
+                continue
         
         if not taskers:
-            logger.error("No taskers found with improved extraction")
+            logger.error("No taskers found with card-based extraction")
             # Save page source for debugging
             try:
                 with open('/tmp/taskrabbit_page_debug.html', 'w', encoding='utf-8') as f:
@@ -953,7 +1120,7 @@ class TaskRabbitParser:
             return []
         
         # Log final results
-        logger.info(f"Successfully extracted {len(taskers)} taskers using improved algorithm")
+        logger.info(f"Successfully extracted {len(taskers)} taskers from current page")
         
         # Check for target names that were mentioned in the issue
         target_names = ["Ivan T.", "Jay F.", "Maxim D.", "Andrey R."]
@@ -1137,7 +1304,12 @@ class TaskRabbitParser:
                         logger.info(f"Detected ellipsis pagination. Max page: {max_page}, visible pages: {len(page_numbers)}")
                         # Generate all page numbers from 1 to max_page
                         all_pages = list(range(1, max_page + 1))
-                        logger.info(f"Generated complete page range: 1 to {max_page} ({len(all_pages)} pages)")
+                        # Apply max_pages limit if specified
+                        if self.max_pages and len(all_pages) > self.max_pages:
+                            all_pages = all_pages[:self.max_pages]
+                            logger.info(f"Limited to first {self.max_pages} pages: {all_pages}")
+                        else:
+                            logger.info(f"Generated complete page range: 1 to {max_page} ({len(all_pages)} pages)")
                         return all_pages
             
                 return page_numbers
@@ -1183,6 +1355,10 @@ class TaskRabbitParser:
             if page_numbers:
                 page_numbers.sort()
                 logger.info(f"Found page numbers: {page_numbers}")
+                # Apply max_pages limit if specified
+                if self.max_pages and len(page_numbers) > self.max_pages:
+                    page_numbers = page_numbers[:self.max_pages]
+                    logger.info(f"Limited to first {self.max_pages} pages: {page_numbers}")
                 return page_numbers
             
             # Fallback: look for text-based pagination
@@ -1208,6 +1384,10 @@ class TaskRabbitParser:
             if page_numbers:
                 page_numbers.sort()
                 logger.info(f"Found page numbers from text: {page_numbers}")
+                # Apply max_pages limit if specified
+                if self.max_pages and len(page_numbers) > self.max_pages:
+                    page_numbers = page_numbers[:self.max_pages]
+                    logger.info(f"Limited to first {self.max_pages} pages: {page_numbers}")
                 return page_numbers
             
             logger.debug("No pagination page numbers found")
@@ -1469,19 +1649,19 @@ class TaskRabbitParser:
             logger.debug(f"Error checking for next page: {e}")
             return False
     
-    def save_to_csv(self, taskers: List[Dict[str, str]], filename: str = "taskrabbit_taskers.csv"):
-        """Save tasker data to CSV file."""
-        logger.info(f"Saving data to {filename}...")
+    def save_to_csv(self, taskers: List[Dict[str, str]]):
+        """Save extracted tasker data to CSV file."""
+        logger.info(f"Saving {len(taskers)} taskers to CSV...")
         
-        with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
-            fieldnames = ['name', 'hourly_rate']
+        with open(self.csv_filename, 'w', newline='', encoding='utf-8') as csvfile:
+            fieldnames = ['name', 'hourly_rate', 'review_rating', 'review_count', 'furniture_tasks', 'overall_tasks']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            
             writer.writeheader()
+            
             for tasker in taskers:
                 writer.writerow(tasker)
-                
-        logger.info(f"Successfully saved {len(taskers)} taskers to {filename}")
+        
+        logger.info(f"Successfully saved {len(taskers)} taskers to {self.csv_filename}")
     
     def run(self):
         """Main execution method."""
@@ -1513,5 +1693,8 @@ class TaskRabbitParser:
                 logger.info("Browser closed")
 
 if __name__ == "__main__":
-    parser = TaskRabbitParser(headless=False)  # Set to True for headless mode
+    # Configuration options
+    MAX_PAGES_FOR_TESTING = 2  # Set to None to scan all pages when script is fully ready
+    
+    parser = TaskRabbitParser(headless=False, max_pages=MAX_PAGES_FOR_TESTING)
     parser.run()
