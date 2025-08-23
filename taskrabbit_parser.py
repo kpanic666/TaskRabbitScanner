@@ -28,7 +28,7 @@ logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s -
 logger = logging.getLogger(__name__)
 
 # Configuration constants - modify these to adjust behavior
-MAX_PAGES_FOR_TESTING = 2      # Set to None to scan all pages, or number to limit pages
+MAX_PAGES_FOR_TESTING = None     # Set to None to scan all pages, or number to limit pages
 
 # Sleep duration constants (in seconds) - modify these to adjust timing
 SLEEP_OVERLAY_REMOVAL = 1          # After removing overlays/popups
@@ -63,6 +63,15 @@ CATEGORIES = {
             # Plumbing skips furniture type selection and goes directly to size and task details
             {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
             {'type': 'task_details', 'value': 'fix leaky faucet', 'final_button': 'See Taskers & Prices'}
+        ]
+    },
+    'electrical': {
+        'name': 'Electrical Help',
+        'url': 'https://www.taskrabbit.com/services/handyman/electrical-work',
+        'options': [
+            # Electrical follows same flow as plumbing - size and task details only
+            {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
+            {'type': 'task_details', 'value': 'install light fixture', 'final_button': 'See Taskers & Prices'}
         ]
     }
 }
