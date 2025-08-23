@@ -62,7 +62,7 @@ CATEGORIES = {
         'options': [
             # Plumbing skips furniture type selection and goes directly to size and task details
             {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
-            {'type': 'task_details', 'value': 'fix leaky faucet', 'final_button': 'See taskers & Price'}
+            {'type': 'task_details', 'value': 'fix leaky faucet', 'final_button': 'See Taskers & Prices'}
         ]
     }
 }
@@ -107,47 +107,34 @@ class TaskRabbitParser:
         
     def debug_page_elements(self, description=""):
         """Debug helper to log current page elements."""
-        logger.info(f"DEBUG - {description}")
-        logger.info(f"Current URL: {self.driver.current_url}")
-        logger.info(f"Page title: {self.driver.title}")
-        
-        # Log some common elements
-        try:
-            links = self.driver.find_elements(By.TAG_NAME, "a")[:10]
-            logger.info(f"Found {len(links)} links, first 10:")
-            for i, link in enumerate(links):
-                logger.info(f"  {i+1}. {link.text[:50]} - {link.get_attribute('href')}")
-        except Exception as e:
-            logger.info(f"Error getting links: {e}")
+        # Debug output disabled to reduce terminal verbosity
+        pass
     
     def close_overlays_and_popups(self):
         """Close any overlays, popups, or modals that might interfere with navigation"""
-        logger.info("Checking for and closing overlays/popups...")
+        # Checking for overlays/popups
         
         # First, handle iframe overlays specifically
         try:
             iframe_overlays = self.driver.find_elements(By.XPATH, "//iframe[contains(@aria-label, 'Modal Overlay')]")
             for iframe in iframe_overlays:
                 if iframe.is_displayed():
-                    logger.info(f"Found modal overlay iframe: {iframe.get_attribute('id')}")
-                    # Try to remove the iframe entirely
+                    # Remove modal overlay iframe
                     self.driver.execute_script("arguments[0].remove();", iframe)
-                    logger.info("Removed modal overlay iframe")
                     time.sleep(SLEEP_OVERLAY_REMOVAL)
-        except Exception as e:
-            logger.info(f"No iframe overlays found or couldn't remove: {e}")
+        except Exception:
+            pass  # No iframe overlays found
         
         # Handle parent containers of iframe overlays
         try:
             iframe_containers = self.driver.find_elements(By.XPATH, "//div[contains(@class, 'box-') and .//iframe]")
             for container in iframe_containers:
                 if container.is_displayed():
-                    logger.info("Found iframe container, removing...")
+                    # Remove iframe container
                     self.driver.execute_script("arguments[0].remove();", container)
-                    logger.info("Removed iframe container")
                     time.sleep(SLEEP_OVERLAY_REMOVAL)
-        except Exception as e:
-            logger.info(f"No iframe containers found: {e}")
+        except Exception:
+            pass  # No iframe containers found
         
         # List of common overlay selectors
         overlay_selectors = [
@@ -183,13 +170,13 @@ class TaskRabbitParser:
                     if element.is_displayed():
                         try:
                             element.click()
-                            logger.info(f"Closed overlay/popup with selector: {selector}")
+                            pass  # Closed overlay/popup
                             time.sleep(SLEEP_OVERLAY_REMOVAL)
                         except Exception as e:
                             # Try JavaScript click if regular click fails
                             try:
                                 self.driver.execute_script("arguments[0].click();", element)
-                                logger.info(f"Closed overlay/popup with JavaScript: {selector}")
+                                pass  # Closed overlay/popup with JavaScript
                                 time.sleep(SLEEP_OVERLAY_REMOVAL)
                             except Exception:
                                 logger.debug(f"Failed to close overlay with JavaScript: {e}")
@@ -201,14 +188,14 @@ class TaskRabbitParser:
         # Additional method: Press ESC key to close modals
         try:
             self.driver.find_element(By.TAG_NAME, 'body').send_keys(Keys.ESCAPE)
-            logger.info("Pressed ESC key to close any modals")
+            pass  # Pressed ESC key
             time.sleep(SLEEP_OVERLAY_REMOVAL)
-        except Exception as e:
-            logger.info(f"Could not press ESC key: {e}")
+        except Exception:
+            pass  # Could not press ESC key
     
     def remove_all_overlays_aggressively(self):
         """Aggressively remove all types of overlays and modals that might block interactions"""
-        logger.info("Aggressively removing all overlays and modals...")
+        # Aggressively removing all overlays and modals
         
         # First, remove any iframe overlays with specific IDs or classes
         try:
@@ -226,11 +213,11 @@ class TaskRabbitParser:
                 iframes = self.driver.find_elements(By.XPATH, selector)
                 for iframe in iframes:
                     if iframe.is_displayed():
-                        logger.info(f"Removing iframe overlay: {iframe.get_attribute('id')} / {iframe.get_attribute('class')}")
+                        # Remove iframe overlay
                         self.driver.execute_script("arguments[0].remove();", iframe)
                         time.sleep(SLEEP_IFRAME_REMOVAL)
-        except Exception as e:
-            logger.info(f"Error removing iframe overlays: {e}")
+        except Exception:
+            pass  # Error removing iframe overlays
         
         # Remove parent containers that might contain overlays
         try:
@@ -252,14 +239,14 @@ class TaskRabbitParser:
                         try:
                             rect = container.rect
                             if rect['width'] > 500 and rect['height'] > 300:  # Large overlay
-                                logger.info(f"Removing large overlay container: {container.get_attribute('class')}")
+                                # Remove large overlay container
                                 self.driver.execute_script("arguments[0].remove();", container)
                                 time.sleep(SLEEP_IFRAME_REMOVAL)
                         except Exception as e:
                             logger.debug(f"Error removing element: {e}")
                             continue
-        except Exception as e:
-            logger.info(f"Error removing container overlays: {e}")
+        except Exception:
+            pass  # Error removing container overlays
         
         # Force remove any elements with high z-index that might be blocking
         try:
@@ -273,9 +260,9 @@ class TaskRabbitParser:
                     }
                 }
             """)
-            logger.info("Removed high z-index fixed position elements")
-        except Exception as e:
-            logger.info(f"Error removing high z-index elements: {e}")
+            pass  # Removed high z-index elements
+        except Exception:
+            pass  # Error removing high z-index elements
         
         # Final cleanup - call the standard overlay removal
         self.close_overlays_and_popups()
@@ -296,26 +283,26 @@ class TaskRabbitParser:
         for selector in continue_selectors:
             try:
                 continue_btn = self.wait.until(EC.element_to_be_clickable((By.XPATH, selector)))
-                logger.info(f"Found Continue button with selector: {selector}")
+                # Found Continue button
                 continue_btn.click()
                 time.sleep(SLEEP_CONTINUE_BUTTON)
                 return True
             except TimeoutException:
                 continue
         
-        logger.info("No Continue button found, proceeding without clicking")
+        # No Continue button found
         return False
     
     def navigate_to_category_page(self):
         """Navigate directly to the category page using configured URL"""
-        logger.info(f"Navigating directly to {self.category_name} page...")
+        print(f"Navigating to {self.category_name} page...")
         
         # Go directly to the category page
         direct_url = self.category_config['url']
         self.driver.get(direct_url)
         time.sleep(3)
         
-        logger.info(f"Loaded {self.category_name} page directly: {direct_url}")
+        # Loaded category page
         
         # Close any overlays that might appear even with direct navigation
         self.close_overlays_and_popups()
@@ -323,7 +310,7 @@ class TaskRabbitParser:
         self.debug_page_elements(f"{self.category_name} page (direct navigation)")
         
         # Try to find a direct booking link or navigate to category booking
-        logger.info("Looking for booking options...")
+        # Looking for booking options
         
         # Look for Book Now or similar buttons
         booking_selectors = [
@@ -351,7 +338,7 @@ class TaskRabbitParser:
             # Try multiple click methods
             try:
                 book_now.click()
-                logger.info("Successfully clicked Book Now button with regular click")
+                # Clicked Book Now button
             except Exception as e:
                 logger.warning(f"Regular click failed: {e}")
                 try:
@@ -493,7 +480,7 @@ class TaskRabbitParser:
     def _select_furniture_type_option(self, option_value: str):
         """Select furniture type option (for furniture assembly category)."""
         
-        logger.info(f"Looking for '{option_value}' option...")
+        # Looking for furniture option
         
         # First, look for the question text to confirm we're on the right page
         question_indicators = [
@@ -605,7 +592,7 @@ class TaskRabbitParser:
     
     def _select_size_option(self, option_value: str):
         """Select size option."""
-        logger.info(f"Looking for '{option_value}' size selection...")
+        # Looking for size option
         
         # Comprehensive selectors for the size option
         size_selectors = [
@@ -705,7 +692,7 @@ class TaskRabbitParser:
     
     def _enter_task_details(self, task_details: str, final_button: str = None):
         """Enter task details in the text field."""
-        logger.info(f"Looking for task details text box to enter '{task_details}'...")
+        # Looking for task details text box
         
         # Comprehensive selectors for task details text input
         task_details_selectors = [
@@ -740,8 +727,7 @@ class TaskRabbitParser:
                 for element in elements:
                     if element.is_displayed() and element.is_enabled():
                         task_details_field = element
-                        logger.info(f"Found task details field with selector: {selector}")
-                        logger.info(f"Element tag: '{element.tag_name}', placeholder: '{element.get_attribute('placeholder')}'")
+                        # Found task details field
                         break
                 if task_details_field:
                     break
@@ -754,7 +740,7 @@ class TaskRabbitParser:
                 task_details_field.clear()
                 task_details_field.send_keys(task_details)
                 time.sleep(SLEEP_TASK_DETAILS)
-                logger.info(f"Successfully entered '{task_details}' in task details field")
+                # Entered task details
                 
                 # Scroll down to make sure button is visible
                 logger.info("Scrolling down to reveal button...")
@@ -770,7 +756,7 @@ class TaskRabbitParser:
                 # Try JavaScript approach as fallback
                 try:
                     self.driver.execute_script(f"arguments[0].value = '{task_details}';", task_details_field)
-                    logger.info("Successfully entered task details using JavaScript")
+                    # Entered task details with JavaScript
                     if final_button:
                         self.click_final_button(final_button)
                     else:
@@ -793,7 +779,7 @@ class TaskRabbitParser:
     
     def click_final_button(self, button_text: str):
         """Click the final button with specific text (e.g., 'See taskers & Price')."""
-        logger.info(f"Looking for '{button_text}' button...")
+        # Looking for final button
         
         # Comprehensive selectors for the final button
         button_selectors = [
@@ -814,7 +800,7 @@ class TaskRabbitParser:
                 final_btn = WebDriverWait(self.driver, SLEEP_CONTINUE_BUTTON).until(
                     EC.element_to_be_clickable((By.XPATH, selector))
                 )
-                logger.info(f"Found '{button_text}' button with selector: {selector}")
+                # Found final button
                 final_btn.click()
                 time.sleep(SLEEP_CONTINUE_BUTTON)
                 return True
@@ -826,11 +812,11 @@ class TaskRabbitParser:
     
     def _select_plumbing_type_option(self, option_value: str):
         """Select plumbing type option (for plumbing category)."""
-        logger.info(f"Looking for plumbing option: '{option_value}'...")
+        # Looking for plumbing option
         
         # For plumbing, the flow might be simpler and go directly to task details
         # This is a placeholder that can be expanded based on actual plumbing page structure
-        logger.info("Plumbing category detected - using simplified flow")
+        # Using simplified plumbing flow
         
         # Continue to next step
         self.click_continue_button()
