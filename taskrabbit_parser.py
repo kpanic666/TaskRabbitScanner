@@ -73,6 +73,15 @@ CATEGORIES = {
             {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
             {'type': 'task_details', 'value': 'install light fixture', 'final_button': 'See Taskers & Prices'}
         ]
+    },
+    'door_repair': {
+        'name': 'Door, Cabinet & Furniture Repair',
+        'url': 'https://www.taskrabbit.com/services/handyman/door-and-cabinet-repair',
+        'options': [
+            # Door repair follows same flow as plumbing/electrical - size and task details only
+            {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
+            {'type': 'task_details', 'value': 'fix cabinet door', 'final_button': 'See Taskers & Prices'}
+        ]
     }
 }
 
