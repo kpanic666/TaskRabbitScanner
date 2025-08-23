@@ -25,7 +25,7 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 logger = logging.getLogger(__name__)
 
 # Configuration constants - modify these to adjust behavior
-MAX_PAGES_FOR_TESTING = 1      # Set to None to scan all pages, or number to limit pages
+MAX_PAGES_FOR_TESTING = 2      # Set to None to scan all pages, or number to limit pages
 
 # Sleep duration constants (in seconds) - modify these to adjust timing
 SLEEP_OVERLAY_REMOVAL = 1          # After removing overlays/popups
@@ -1209,6 +1209,55 @@ class TaskRabbitParser:
                     logger.debug(f"Error extracting 2 Hour Minimum flag: {e}")
                     pass
                 
+                # Extract "Elite" status flag
+                elite_status = False
+                try:
+                    card_text = card.text
+                    card_html = card.get_attribute('innerHTML') or ''
+                    
+                    # Look for "Elite" text in various formats
+                    elite_patterns = [
+                        r'\bElite\b',
+                        r'\bELITE\b',
+                        r'\belite\b'
+                    ]
+                    
+                    # Check in card text first
+                    for pattern in elite_patterns:
+                        if re.search(pattern, card_text):
+                            elite_status = True
+                            break
+                    
+                    # If not found in text, check in HTML
+                    if not elite_status:
+                        for pattern in elite_patterns:
+                            if re.search(pattern, card_html):
+                                elite_status = True
+                                break
+                    
+                    # Also look for specific elements that might contain the Elite status
+                    if not elite_status:
+                        elite_selectors = [
+                            ".//*[contains(text(), 'Elite')]",
+                            ".//*[contains(text(), 'ELITE')]",
+                            ".//*[contains(text(), 'elite')]",
+                            ".//*[contains(@class, 'elite')]",
+                            ".//*[contains(@class, 'Elite')]"
+                        ]
+                        
+                        for selector in elite_selectors:
+                            try:
+                                elements = card.find_elements(By.XPATH, selector)
+                                if elements and any(elem.is_displayed() for elem in elements):
+                                    elite_status = True
+                                    break
+                            except Exception:
+                                continue
+                                
+                except Exception as e:
+                    logger.debug(f"Error extracting Elite status: {e}")
+                    pass
+                
                 # Clean hourly rate by removing '/hr' suffix
                 clean_rate = rate
                 if rate != "Rate not found" and rate.endswith('/hr'):
@@ -1222,11 +1271,12 @@ class TaskRabbitParser:
                     'review_count': review_count,
                     'furniture_tasks': furniture_tasks,
                     'overall_tasks': overall_tasks,
-                    'two_hour_minimum': two_hour_minimum
+                    'two_hour_minimum': two_hour_minimum,
+                    'elite_status': elite_status
                 }
                 
                 taskers.append(tasker)
-                logger.info(f"Card {i+1}: {name} - {rate} - Rating: {review_rating} ({review_count} reviews) - Tasks: {furniture_tasks} furniture, {overall_tasks} overall - 2Hr Min: {two_hour_minimum}")
+                logger.info(f"Card {i+1}: {name} - {rate} - Rating: {review_rating} ({review_count} reviews) - Tasks: {furniture_tasks} furniture, {overall_tasks} overall - 2Hr Min: {two_hour_minimum} - Elite: {elite_status}")
                 
                 # Debug: log card structure if rate not found
                 if rate == "Rate not found":
@@ -1781,7 +1831,7 @@ class TaskRabbitParser:
         logger.info(f"Saving {len(taskers)} taskers to CSV...")
         
         with open(self.csv_filename, 'w', newline='', encoding='utf-8') as csvfile:
-            fieldnames = ['name', 'hourly_rate', 'review_rating', 'review_count', 'furniture_tasks', 'overall_tasks', 'two_hour_minimum']
+            fieldnames = ['name', 'hourly_rate', 'review_rating', 'review_count', 'furniture_tasks', 'overall_tasks', 'two_hour_minimum', 'elite_status']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
             
