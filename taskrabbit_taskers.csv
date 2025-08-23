@@ -1,345 +1,346 @@
 name,hourly_rate,review_rating,review_count,furniture_tasks,overall_tasks
-Ivan T.,$39.23/hr,5.0,65,142,124
-Jay F.,$67.10/hr,5.0,1249,2417,2411
-Maxim D.,$67.10/hr,5.0,556,1113,1109
-Aleksandr B.,$36.13/hr,5.0,24,50,43
-Yevhen H.,$55.75/hr,4.9,65,117,102
-Ruslan M.,$68.13/hr,4.9,371,416,715
-Viktor G.,$41.29/hr,5.0,221,377,374
-Timmy G.,$67.10/hr,5.0,592,999,1039
-Evgenii B.,$52.65/hr,5.0,60,102,86
-DMITRY L.,$41.29/hr,5.0,220,387,391
-Andrey R.,$39.23/hr,5.0,48,78,None
-Denys A.,$67.10/hr,5.0,65,140,None
-Max A.,$36.13/hr,5.0,17,25,13
-Aktan C.,$53.68/hr,5.0,68,115,100
-Joshua T.,$39.23/hr,5.0,22,36,20
-Diana S.,$41.29/hr,5.0,240,372,None
-Tsyren S.,$61.94/hr,5.0,399,354,797
-Adam U.,$48.52/hr,5.0,29,74,None
-Konstantin K.,$55.75/hr,4.9,52,96,62
-Patrick H.,$61.94/hr,5.0,1333,2021,2131
-Aisen G.,$56.78/hr,5.0,142,266,245
-Oleksiy R.,$43.36/hr,4.9,133,263,255
-Art D.,$54.71/hr,5.0,48,79,68
-Ewart C.,$56.78/hr,5.0,74,96,91
-Yaro R.,$45.42/hr,5.0,21,25,None
-Denys B.,$51.62/hr,5.0,170,258,334
-Viktor O.,$41.29/hr,5.0,287,442,None
-Adam I.,$77.43/hr,5.0,778,1213,1385
-Sorbon Q.,$41.29/hr,5.0,4,8,6
-Shaun A.,$46.45/hr,5.0,55,114,117
-Pavel K.,$40.26/hr,5.0,21,33,31
-Ivan P.,$49.55/hr,5.0,42,88,73
-Oskar A.,$30.97/hr,5.0,22,35,27
-Islomjon K.,$51.62/hr,5.0,35,81,64
-Erdem N.,$51.62/hr,4.9,79,129,124
-Evgenii U.,$51.62/hr,5.0,50,95,88
-Renat K.,$41.29/hr,5.0,79,146,137
-Jaime A.,$46.45/hr,5.0,8,17,16
-Jose L.,$55.75/hr,5.0,18,26,18
-Scott W.,$41.29/hr,5.0,493,580,784
-Fikret M.,$30.97/hr,5.0,13,15,13
-Joshua B.,$38.19/hr,5.0,13,31,None
-Jose C.,$36.13/hr,4.1,9,15,16
-Rauf R.,$49.55/hr,5.0,13,18,None
-Orzu K.,$43.36/hr,5.0,9,19,None
-Robert H.,$61.94/hr,5.0,696,1402,1431
-Courtney L.,$46.45/hr,5.0,4,11,None
-Maksim P.,$36.13/hr,5.0,6,4,2
-Nurbek A.,$30.97/hr,Not found,Not found,Not found,None
-Mikhail D.,$30.97/hr,5.0,1,Not found,None
-Youssof S.,$33.03/hr,1.0,1,3,None
-Thomas W.,$30.97/hr,Not found,Not found,Not found,None
-Ilia P.,$36.13/hr,5.0,3,4,None
-Abdullah A.,$43.36/hr,5.0,7,7,None
-Denys K.,$37.16/hr,5.0,2,5,2
-Albert Y.,$46.45/hr,5.0,105,87,185
-Ryan S.,$34.06/hr,4.9,137,116,263
-Julia B.,$61.94/hr,5.0,303,315,473
-Aliaksei V.,$30.97/hr,5.0,1,Not found,None
-Stanislav A.,$49.55/hr,5.0,18,40,5
-Volodymyr K.,$51.62/hr,5.0,6,9,7
-Evgenii B.,$43.36/hr,5.0,10,14,None
-MERGEN A.,$51.62/hr,5.0,44,70,86
-Anta R.,$72.26/hr,4.9,339,560,None
-Ilez E.,$51.62/hr,4.9,13,29,26
-Daniel V.,$46.45/hr,5.0,45,47,77
-Nanzat B.,$33.03/hr,Not found,Not found,Not found,None
-Jasmine C.,$35.10/hr,5.0,3,5,3
-Muhsin K.,$38.19/hr,5.0,2,2,None
-Francisco R.,$30.97/hr,Not found,Not found,Not found,None
-Bayarto D.,$51.62/hr,5.0,230,255,427
-Igor V.,$67.10/hr,5.0,383,245,702
-Alex E.,$61.94/hr,5.0,268,441,432
-Aiub V.,$41.29/hr,5.0,13,21,None
-Roman D.,$30.97/hr,Not found,Not found,Not found,None
-Aleksei R.,$41.29/hr,5.0,63,86,85
-Ivan P.,$30.97/hr,5.0,2,2,None
-Daron E.,$61.94/hr,5.0,310,483,482
-Shaikh A.,$139.37/hr,5.0,24,40,33
-Jack L.,$41.29/hr,5.0,4,5,None
-Shaun M.,$51.62/hr,5.0,81,19,195
-Timur I.,$56.78/hr,4.6,29,50,68
-Matthew E.,$54.71/hr,5.0,104,40,188
-Isaiah S.,$40.26/hr,5.0,2,5,3
-Kenardo W.,$51.62/hr,4.9,9,14,None
-Kadeem J.,$52.65/hr,4.7,51,47,91
-Marat N.,$44.39/hr,5.0,3,7,None
-Sheldon M.,$72.26/hr,3.7,3,9,10
-Ilia B.,$46.45/hr,5.0,18,27,31
-Cristian O.,$72.26/hr,4.9,224,144,427
-Cristina P.,$53.68/hr,5.0,37,63,61
+Ivan T.,$39.23,5.0,65,146,124
+Jay F.,$67.10,5.0,1249,2417,2411
+Maxim D.,$67.10,5.0,556,1113,1109
+Denzil M.,$30.97,4.3,46,107,95
+Yevhen H.,$55.75,4.9,66,118,102
+Ruslan M.,$68.13,4.9,371,416,715
+Viktor G.,$41.29,5.0,221,378,374
+Timmy G.,$66.07,5.0,592,999,1039
+Evgenii B.,$52.65,5.0,60,104,86
+DMITRY L.,$41.29,5.0,220,387,391
+Andrey R.,$39.23,5.0,48,78,None
+Denys A.,$67.10,5.0,65,141,140
+Aktan C.,$53.68,5.0,69,115,100
+Joshua T.,$39.23,5.0,22,36,20
+Oleksiy R.,$39.23,4.9,133,263,255
+Diana S.,$41.29,5.0,240,372,None
+Tsyren S.,$61.94,5.0,400,354,797
+Adam U.,$48.52,5.0,29,74,None
+Konstantin K.,$55.75,4.9,52,96,62
+Patrick H.,$61.94,5.0,1333,2022,2131
+Aisen G.,$56.78,5.0,142,266,245
+Art D.,$54.71,5.0,48,80,68
+Ewart C.,$56.78,5.0,74,96,91
+Yaro R.,$45.42,5.0,21,25,None
+Denys B.,$51.62,5.0,170,258,334
+Viktor O.,$41.29,5.0,288,443,442
+Adam I.,$77.43,5.0,778,1213,1385
+Sorbon Q.,$41.29,5.0,4,8,6
+Shaun A.,$46.45,5.0,55,114,117
+Pavel K.,$40.26,5.0,21,33,31
+Ivan P.,$49.55,5.0,42,89,73
+Oskar A.,$30.97,5.0,22,35,27
+Islomjon K.,$51.62,5.0,35,82,83
+Erdem N.,$51.62,4.9,79,129,124
+Jose L.,$50.58,5.0,18,28,None
+Evgenii U.,$51.62,5.0,50,95,88
+Renat K.,$41.29,5.0,79,146,137
+Jaime A.,$46.45,5.0,8,17,16
+Scott W.,$41.29,5.0,493,580,784
+Fikret M.,$30.97,5.0,13,15,13
+Joshua B.,$38.19,5.0,13,32,None
+Jose C.,$36.13,4.1,9,15,16
+Orzu K.,$41.29,5.0,9,19,None
+Rauf R.,$49.55,5.0,13,19,None
+Robert H.,$61.94,5.0,696,1404,1431
+Courtney L.,$46.45,5.0,4,11,None
+Ian M.,$42.32,5.0,6,6,5
+Maksim P.,$36.13,5.0,6,4,2
+Nurbek A.,$30.97,Not found,Not found,Not found,None
+Youssof S.,$33.03,1.0,1,3,None
+Thomas W.,$30.97,Not found,Not found,Not found,None
+Ilia P.,$36.13,5.0,3,4,None
+Abdullah A.,$43.36,5.0,7,7,None
+Denys K.,$37.16,5.0,2,5,2
+Albert Y.,$46.45,5.0,105,87,185
+Dolgan B.,$41.29,4.8,33,49,36
+Julia B.,$61.94,5.0,303,315,473
+Aliaksei V.,$30.97,5.0,1,Not found,None
+Stanislav A.,$49.55,5.0,18,40,5
+Volodymyr K.,$51.62,5.0,6,9,7
+Evgenii B.,$43.36,5.0,10,14,None
+MERGEN A.,$51.62,5.0,44,70,86
+Anta R.,$72.26,4.9,339,560,None
+Ilez E.,$51.62,4.9,13,29,26
+Daniel V.,$46.45,5.0,45,47,77
+Nanzat B.,$33.03,Not found,Not found,Not found,None
+Jasmine C.,$35.10,5.0,3,5,3
+Muhsin K.,$38.19,5.0,2,2,None
+Francisco R.,$30.97,Not found,Not found,Not found,None
+Bayarto D.,$51.62,5.0,230,255,427
+Igor V.,$67.10,5.0,383,245,702
+Mikhail D.,$41.29,5.0,1,Not found,None
+Alex E.,$61.94,5.0,268,441,432
+Aiub V.,$41.29,5.0,13,21,None
+Roman D.,$30.97,Not found,Not found,Not found,None
+Aleksei R.,$41.29,5.0,63,86,85
+Donovan B.,$35.10,Not found,Not found,3,None
+Ivan P.,$30.97,5.0,2,2,None
+Aleksandr K.,$41.29,5.0,3,6,None
+Daron E.,$61.94,5.0,310,483,482
+Shaikh A.,$139.37,5.0,24,40,33
+Jack L.,$41.29,5.0,4,5,None
+Shaun M.,$51.62,5.0,81,19,195
+Timur I.,$56.78,4.6,29,50,68
+Matthew E.,$54.71,5.0,104,40,188
+Isaiah S.,$40.26,5.0,2,6,4
+Kenardo W.,$51.62,4.9,9,14,None
+Kadeem J.,$52.65,4.7,51,47,91
+Marat N.,$44.39,5.0,3,7,None
+Sheldon M.,$72.26,3.7,3,9,10
+Ilia B.,$46.45,5.0,18,27,31
+Cristian O.,$72.26,4.9,224,144,427
+Cristina P.,$53.68,5.0,37,63,61
 Anatolii G.,Rate not found,5.0,6,Not found,11
-Spa T.,$42.32/hr,5.0,2,6,None
-Andrii S.,$49.55/hr,4.7,8,11,15
-Nikolay K.,$47.49/hr,5.0,43,12,64
-Anton M.,$41.29/hr,5.0,4,3,2
-Oleksandr M.,$30.97/hr,5.0,2,2,None
-Lenur A.,$33.03/hr,5.0,1,Not found,None
+Spa T.,$42.32,5.0,2,6,None
+Andrii S.,$49.55,4.7,8,11,15
+Nikolay K.,$47.49,5.0,43,12,64
+Anton M.,$41.29,5.0,4,3,2
+Oleksandr M.,$30.97,5.0,2,2,None
+Lenur A.,$33.03,5.0,1,Not found,None
 Franklin J.,Rate not found,Not found,Not found,Not found,None
-Bair B.,$41.29/hr,5.0,1,3,None
-Adem R.,$41.29/hr,Not found,Not found,Not found,None
-Sergey O.,$34.06/hr,Not found,Not found,Not found,None
-Vitalii K.,$36.13/hr,Not found,Not found,2,None
-Abderazzak A.,$67.10/hr,5.0,225,306,344
-Pedro M.,$59.88/hr,4.8,226,98,477
-Rostyslav P.,$30.97/hr,Not found,Not found,Not found,None
-Jeffrey R.,$51.62/hr,4.9,25,53,48
-Aleksei B.,$34.06/hr,Not found,Not found,Not found,None
-Daniel T.,$38.19/hr,Not found,Not found,2,None
-Bilikto B.,$51.62/hr,5.0,1,Not found,None
-Cardell W.,$49.55/hr,5.0,14,12,28
-Ed N.,$41.29/hr,5.0,4,5,None
-Enkhe T.,$53.68/hr,4.8,21,25,18
-Valentin M.,$30.97/hr,Not found,Not found,Not found,None
-Marcelo B.,$129.05/hr,5.0,63,83,79
-Diamond C.,$46.45/hr,5.0,8,16,15
-Arturo G.,$72.26/hr,5.0,12,9,28
-Michael P.,$38.19/hr,5.0,2,2,3
-Emadaldin J.,$54.71/hr,4.8,36,75,74
-Christopher P.,$77.43/hr,5.0,55,71,80
-Richard N.,$41.29/hr,5.0,101,5,202
-Benjamin A.,$30.97/hr,Not found,Not found,Not found,None
-Vandal L.,$30.97/hr,Not found,Not found,Not found,None
-Juan C.,$36.13/hr,5.0,2,3,None
-Aleksandr G.,$36.13/hr,5.0,1,Not found,None
-Zurkhai G.,$49.55/hr,4.9,47,12,59
-Kashawn C.,$41.29/hr,Not found,Not found,Not found,None
-Paul M.,$51.62/hr,5.0,68,12,135
-Vasyl S.,$41.29/hr,Not found,Not found,Not found,None
-Roneil M.,$67.10/hr,4.8,13,31,None
-Michael H.,$43.36/hr,5.0,4,11,None
-Robert J.,$39.23/hr,Not found,Not found,Not found,None
-Heriberto P.,$55.75/hr,4.8,92,65,157
-Roman F.,$48.52/hr,5.0,5,6,None
-Roberto P.,$50.58/hr,5.0,10,19,17
-Alex D.,$49.55/hr,Not found,Not found,Not found,None
-Omurbek E.,$51.62/hr,Not found,Not found,Not found,None
-Aslan I.,$51.62/hr,Not found,Not found,Not found,None
-Alexander F.,$72.26/hr,Not found,Not found,Not found,None
-LARRY F.,$36.13/hr,Not found,Not found,Not found,None
-Villi O.,$36.13/hr,5.0,1,Not found,None
-Andrei K.,$46.45/hr,Not found,Not found,Not found,None
-Edgar S.,$57.81/hr,5.0,1,Not found,None
-Muxiang L.,$77.43/hr,Not found,Not found,Not found,None
-Aleksei F.,$40.26/hr,4.9,56,3,133
-Ruslan B.,$30.97/hr,4.9,97,260,239
-Maksim P.,$30.97/hr,5.0,59,95,None
-Ali S.,$41.29/hr,5.0,468,813,962
-Vadim K.,$30.97/hr,5.0,10,32,14
-Dmitrii S.,$30.97/hr,5.0,200,326,323
-Alikhan D.,$30.97/hr,5.0,6,24,20
-Oleg K.,$51.62/hr,5.0,349,395,458
-Almazbek K.,$76.39/hr,5.0,1444,2524,2390
-Aleksei A.,$46.45/hr,5.0,547,964,969
-Chin Z.,$82.59/hr,5.0,228,343,357
-Danila S.,$41.29/hr,5.0,45,115,110
-Andrei K.,$34.06/hr,5.0,26,42,None
-Dmitrii A.,$53.68/hr,5.0,242,408,417
-Dmytro V.,$30.97/hr,5.0,24,26,9
-Matthew M.,$61.94/hr,5.0,657,1143,1149
-Mykola M.,$59.88/hr,5.0,250,386,429
-Daniil Z.,$72.26/hr,5.0,506,282,1102
+Bair B.,$41.29,5.0,1,3,None
+Adem R.,$41.29,Not found,Not found,Not found,None
+Sergey O.,$34.06,Not found,Not found,Not found,None
+Vitalii K.,$36.13,Not found,Not found,2,None
+Pedro M.,$59.88,4.8,226,98,477
+Rostyslav P.,$30.97,Not found,Not found,Not found,None
+Jeffrey R.,$51.62,4.9,25,53,48
+Aleksei B.,$34.06,Not found,Not found,Not found,None
+Daniel T.,$38.19,Not found,Not found,2,None
+Iurii K.,$61.94,5.0,96,46,217
+Bilikto B.,$51.62,5.0,1,Not found,None
+Cardell W.,$49.55,5.0,14,12,28
+Ed N.,$41.29,5.0,4,5,None
+Enkhe T.,$53.68,4.8,21,25,18
+Melvin J.,$51.62,5.0,3,4,3
+Valentin M.,$30.97,Not found,Not found,Not found,None
+Marcelo B.,$129.05,5.0,63,83,79
+Diamond C.,$46.45,5.0,8,16,15
+Arturo G.,$72.26,5.0,12,9,28
+Michael P.,$38.19,5.0,2,2,3
+Emadaldin J.,$54.71,4.8,36,75,74
+Christopher P.,$77.43,5.0,55,71,80
+Richard N.,$41.29,5.0,101,5,202
+Benjamin A.,$30.97,Not found,Not found,Not found,None
+Vandal L.,$30.97,Not found,Not found,Not found,None
+Juan C.,$36.13,5.0,2,3,None
+Luis O.,$51.62,4.8,23,31,None
+Aleksandr G.,$36.13,5.0,1,Not found,None
+Zurkhai G.,$49.55,4.9,47,12,59
+Kashawn C.,$41.29,4.0,1,Not found,None
+Paul M.,$51.62,5.0,68,12,135
+Vasyl S.,$41.29,Not found,Not found,Not found,None
+Roneil M.,$67.10,4.8,13,31,None
+Michael H.,$43.36,5.0,4,11,None
+Jarrel T.,$41.29,5.0,33,2,66
+Robert J.,$39.23,Not found,Not found,Not found,None
+Heriberto P.,$55.75,4.8,92,65,157
+Roman F.,$48.52,5.0,5,6,None
+Alex D.,$49.55,Not found,Not found,Not found,None
+Omurbek E.,$51.62,Not found,Not found,Not found,None
+Alexander F.,$72.26,Not found,Not found,Not found,None
+LARRY F.,$36.13,Not found,Not found,Not found,None
+Villi O.,$36.13,5.0,1,Not found,None
+Andrei K.,$46.45,Not found,Not found,Not found,None
+Edgar S.,$57.81,5.0,1,Not found,None
+Aleksei F.,$40.26,4.9,56,3,133
+Sanad W.,$73.30,Not found,Not found,Not found,None
+Ruslan B.,$30.97,4.9,97,260,239
+Maksim P.,$30.97,5.0,59,96,95
+Ali S.,$41.29,5.0,468,813,962
+Vadim K.,$30.97,5.0,10,32,14
+Alikhan D.,$30.97,5.0,6,25,20
+Andrei K.,$30.97,5.0,26,42,None
+Almazbek K.,$76.39,5.0,1444,2524,2390
+Aleksei A.,$46.45,5.0,547,964,969
+Chin Z.,$82.59,5.0,228,343,357
+Danila S.,$41.29,5.0,45,115,110
+Dmitrii A.,$53.68,5.0,242,408,417
+Matthew M.,$61.94,5.0,657,1143,1149
+Mykola M.,$59.88,5.0,250,386,429
+Daniil Z.,$72.26,5.0,506,282,1102
 Ivan L.,Rate not found,5.0,255,219,475
-Denis K.,$61.94/hr,5.0,382,697,698
-Andrii H.,$30.97/hr,5.0,12,15,None
-Igor N.,$41.29/hr,5.0,160,235,314
-Aslan G.,$41.29/hr,4.9,96,165,170
-Dane H.,$67.10/hr,4.9,227,347,479
-Oleg S.,$57.81/hr,5.0,258,184,662
-Eugene B.,$50.58/hr,5.0,63,90,88
-Nikita I.,$51.62/hr,5.0,731,1398,1356
-Arthur T.,$30.97/hr,5.0,111,191,None
-Maksim K.,$30.97/hr,5.0,7,13,None
-Erdni M.,$46.45/hr,5.0,101,95,263
-Brandon P.,$67.10/hr,5.0,276,336,440
-Igor Z.,$62.97/hr,5.0,91,165,None
-Bulat T.,$56.78/hr,5.0,333,606,None
-Alexander L.,$58.84/hr,5.0,143,135,221
-Pavlo S.,$61.94/hr,5.0,123,266,291
-Aleksandr D.,$56.78/hr,5.0,180,159,369
-Konstantin S.,$66.07/hr,5.0,400,531,528
-Aziz N.,$67.10/hr,5.0,237,464,463
-Aleksandr D.,$67.10/hr,4.9,350,506,633
-Carlos M.,$55.75/hr,5.0,616,81,1356
-Raman K.,$60.91/hr,4.9,184,269,274
-Daulet R.,$58.84/hr,5.0,177,225,369
-David D.,$56.78/hr,5.0,202,48,700
-Sergei K.,$61.94/hr,5.0,160,261,289
-Bek K.,$67.10/hr,5.0,217,421,414
-Jabari G.,$53.68/hr,5.0,124,189,188
-Brandon R.,$61.94/hr,5.0,242,373,372
-Steve E.,$33.03/hr,5.0,2,4,None
-Richard N.,$80.52/hr,5.0,241,421,365
-Alex S.,$58.84/hr,5.0,284,222,543
-Pavel K.,$98.07/hr,5.0,490,804,878
-Edward O.,$46.45/hr,4.8,97,144,226
-David M.,$66.07/hr,4.9,414,750,789
-Raymond R.,$62.97/hr,5.0,252,381,377
-Kimani S.,$67.10/hr,4.9,284,514,510
-Ivan S.,$87.75/hr,5.0,184,302,301
-Vasya H.,$43.36/hr,5.0,12,20,19
-Emil K.,$62.97/hr,5.0,182,118,367
-Antonio A.,$67.10/hr,4.9,42,85,80
-Javerick J.,$49.55/hr,4.8,141,227,230
-Gregory M.,$61.94/hr,5.0,571,937,888
-Joe L.,$69.17/hr,4.8,125,283,297
-Evgenii B.,$45.42/hr,5.0,8,11,None
-Denis S.,$56.78/hr,4.9,155,261,288
-Yuriy K.,$67.10/hr,4.9,83,125,123
-Ilgam M.,$56.78/hr,5.0,267,61,500
-Denis N.,$60.91/hr,4.9,252,130,654
-Ali S.,$43.36/hr,5.0,8,9,8
-Sergei G.,$61.94/hr,5.0,24,44,None
-Balzhinima A.,$72.26/hr,5.0,42,65,80
-Sergei G.,$56.78/hr,5.0,98,143,181
-Michael C.,$67.10/hr,4.9,137,112,280
-Rory T.,$69.17/hr,5.0,354,540,531
-Viktor F.,$46.45/hr,5.0,185,49,394
-Ezekiel W.,$56.78/hr,4.9,71,54,164
-Derrick C.,$54.71/hr,5.0,20,38,58
-Roman S.,$52.65/hr,4.9,88,113,234
-Oleg P.,$46.45/hr,5.0,8,11,13
-Igor B.,$56.78/hr,4.8,36,60,63
-Nozimbek B.,$51.62/hr,4.9,174,75,386
-Anatolii G.,$45.42/hr,5.0,55,20,164
-Roman M.,$52.65/hr,5.0,32,41,71
-Ayur T.,$82.59/hr,5.0,158,244,263
-Madiyar T.,$68.13/hr,5.0,308,472,535
-Almaz A.,$41.29/hr,5.0,15,11,49
-Barrington F.,$59.88/hr,4.9,238,83,446
-Aleksandr B.,$61.94/hr,5.0,110,59,327
-Vladimir S.,$51.62/hr,5.0,30,53,52
-Chingis T.,$34.06/hr,5.0,3,5,None
-Jonathan S.,$56.78/hr,4.9,99,181,218
-Hafedh K.,$58.84/hr,5.0,11,21,None
-Polanco C.,$67.10/hr,5.0,70,191,152
+Denis K.,$61.94,5.0,382,697,698
+Andrii H.,$30.97,5.0,14,16,None
+Igor N.,$41.29,5.0,160,235,314
+Aslan G.,$41.29,4.9,96,165,170
+Dane H.,$67.10,4.9,227,347,479
+Oleg S.,$57.81,5.0,258,184,662
+Eugene B.,$50.58,5.0,63,90,88
+Nikita I.,$51.62,5.0,731,1398,1356
+Arthur T.,$30.97,5.0,111,191,None
+Maksim K.,$30.97,5.0,7,13,None
+Erdni M.,$46.45,5.0,101,95,263
+Brandon P.,$67.10,5.0,276,336,440
+Igor Z.,$62.97,5.0,91,165,None
+Bulat T.,$56.78,5.0,333,606,None
+Alexander L.,$58.84,5.0,143,135,221
+Pavlo S.,$61.94,5.0,123,266,291
+Konstantin S.,$66.07,5.0,400,531,528
+Aziz N.,$67.10,5.0,237,464,463
+Aleksandr D.,$67.10,4.9,350,506,633
+Carlos M.,$55.75,5.0,616,81,1356
+Aleksandr D.,$62.97,5.0,180,159,369
+Raman K.,$60.91,4.9,184,269,274
+Daulet R.,$58.84,5.0,177,225,369
+David D.,$56.78,5.0,202,48,702
+Sergei K.,$61.94,5.0,160,261,289
+Bek K.,$67.10,5.0,217,421,414
+Jabari G.,$53.68,5.0,124,189,188
+Brandon R.,$61.94,5.0,242,373,372
+Steve E.,$33.03,5.0,2,4,None
+Richard N.,$80.52,5.0,241,421,365
+Alex S.,$58.84,5.0,284,222,543
+Pavel K.,$98.07,5.0,490,804,878
+Edward O.,$46.45,4.8,97,144,226
+David M.,$66.07,4.9,414,750,789
+Raymond R.,$62.97,5.0,252,381,377
+Kimani S.,$67.10,4.9,284,514,510
+Stevon C.,$72.26,4.9,108,197,193
+Ivan S.,$87.75,5.0,184,302,301
+Vasya H.,$43.36,5.0,12,20,19
+Emil K.,$62.97,5.0,182,118,367
+Javerick J.,$49.55,4.8,141,227,230
+Gregory M.,$61.94,5.0,571,937,888
+Joe L.,$69.17,4.8,125,283,297
+Evgenii B.,$45.42,5.0,8,11,None
+Denis S.,$56.78,4.9,155,261,288
+Yuriy K.,$67.10,4.9,83,125,123
+Ilgam M.,$56.78,5.0,267,61,500
+Denis N.,$60.91,4.9,252,130,654
+Ali S.,$43.36,5.0,8,9,8
+Sergei G.,$61.94,5.0,24,44,None
+Balzhinima A.,$72.26,5.0,42,65,80
+Sergei G.,$56.78,5.0,98,143,181
+Michael C.,$67.10,4.9,137,112,280
+Rory T.,$69.17,5.0,354,540,531
+Viktor F.,$46.45,5.0,185,49,394
+Ezekiel W.,$56.78,4.9,71,54,164
+Derrick C.,$54.71,5.0,20,38,58
+Roman S.,$52.65,4.9,88,113,234
+Oleg P.,$46.45,5.0,8,11,13
+Igor B.,$56.78,4.8,36,60,63
+Nozimbek B.,$51.62,4.9,174,75,386
+Ajay T.,Rate not found,5.0,361,159,647
+Anatolii G.,$45.42,5.0,55,20,164
+Roman M.,$52.65,5.0,32,41,71
+Ayur T.,$82.59,5.0,158,244,263
+Madiyar T.,$68.13,5.0,308,472,535
+Almaz A.,$41.29,5.0,15,11,49
+Barrington F.,$59.88,4.9,238,83,446
+Aleksandr B.,$61.94,5.0,110,59,327
+Vladimir S.,$51.62,5.0,30,53,52
+Chingis T.,$34.06,5.0,3,5,None
+Jonathan S.,$56.78,4.9,99,181,218
+Hafedh K.,$58.84,5.0,11,21,None
+Polanco C.,$67.10,5.0,70,191,152
 Tamerlan Z.,Rate not found,5.0,144,155,256
-Luis D.,$61.94/hr,5.0,26,58,64
-Oberd L.,$61.94/hr,4.9,296,330,583
-Angel O.,$51.62/hr,5.0,21,28,29
-Bohdan D.,$40.26/hr,5.0,3,5,None
-Alex B.,$53.68/hr,5.0,21,34,32
-Vlad S.,$43.36/hr,5.0,51,71,86
+Luis D.,$61.94,5.0,26,58,64
+Oberd L.,$61.94,4.9,296,330,583
+Angel O.,$51.62,5.0,21,28,29
+Bohdan D.,$40.26,5.0,3,5,None
+Alex B.,$53.68,5.0,21,34,32
+Vlad S.,$43.36,5.0,51,71,86
 Rufat A.,Rate not found,4.9,46,116,129
-Anton C.,$39.23/hr,5.0,5,8,None
-Grygorii K.,$49.55/hr,4.9,29,12,54
-Azim S.,$82.59/hr,5.0,123,188,191
-Denis D.,$46.45/hr,5.0,8,15,14
-Joe P.,$45.42/hr,4.9,25,50,53
-Viktor B.,$49.55/hr,4.9,15,28,None
-Alikhan B.,$72.26/hr,5.0,1059,140,1675
-Dmitrii B.,$43.36/hr,5.0,51,93,89
-Oleksandr L.,$41.29/hr,4.9,17,37,32
-Deven G.,$30.97/hr,Not found,Not found,Not found,None
-Giorgi M.,$51.62/hr,4.9,24,30,68
-Bair B.,$67.10/hr,5.0,63,94,115
-Maxim S.,$43.36/hr,5.0,32,18,48
-Malik W.,$39.23/hr,3.7,3,4,6
-Franklin P.,$33.03/hr,5.0,1,Not found,None
-Aldar T.,$30.97/hr,5.0,1,Not found,None
-Dmytro T.,$55.75/hr,5.0,31,44,45
-Maksim G.,$37.16/hr,Not found,Not found,2,None
-Nikolay N.,$67.10/hr,5.0,31,39,58
-Osita E.,$30.97/hr,Not found,Not found,Not found,None
-Oleksandr V.,$34.06/hr,5.0,2,3,None
-Elvek S.,$51.62/hr,5.0,103,26,307
-Oleg S.,$62.97/hr,4.9,158,119,347
-Sobir S.,$46.45/hr,5.0,17,12,24
-Alfred B.,$51.62/hr,4.9,201,31,313
-Vladislav K.,$56.78/hr,5.0,144,40,241
-Yuri Z.,$77.43/hr,5.0,65,48,90
-Lenur Y.,$36.13/hr,4.8,5,8,None
-Cornelious S.,$50.58/hr,4.9,98,15,251
-Yelnar N.,$41.29/hr,5.0,1,2,None
-Yurii Z.,$53.68/hr,4.8,45,75,101
-Erdenibelik B.,$51.62/hr,4.9,10,17,19
-Luis S.,$50.58/hr,4.8,11,16,26
-Yaro C.,$51.62/hr,5.0,73,10,131
-Viktor N.,$41.29/hr,5.0,43,16,125
-Oleksandr P.,$53.68/hr,5.0,9,14,16
-Charles S.,$46.45/hr,5.0,4,10,None
-Alisher K.,$92.91/hr,5.0,11,15,19
-Vitalii B.,$67.10/hr,5.0,16,9,22
-Roman I.,$73.30/hr,5.0,21,25,26
-Terrel A.,$123.89/hr,5.0,46,66,91
-Anton G.,$51.62/hr,5.0,198,29,612
-Benjamin H.,$49.55/hr,5.0,15,27,30
-Carlos S.,$72.26/hr,5.0,26,37,None
-Dicky M.,$47.49/hr,5.0,3,6,5
-Junior M.,$54.71/hr,5.0,125,42,200
-George F.,$46.45/hr,4.8,40,18,81
-BAIRO T.,$72.26/hr,4.7,19,25,43
-Viktor T.,$51.62/hr,5.0,2,5,None
-Jonathan M.,$47.49/hr,5.0,18,8,36
-Roman C.,$41.29/hr,5.0,4,5,7
-Lamar B.,$59.88/hr,4.9,90,69,231
-Stylianos K.,$82.59/hr,4.9,33,43,52
-Morgan H.,$50.58/hr,5.0,119,185,187
-Pavel P.,$61.94/hr,5.0,12,24,None
-Sergey M.,$45.42/hr,5.0,33,6,65
-Wayne Y.,$30.97/hr,5.0,1,Not found,4
-Juan E.,$81.56/hr,5.0,15,29,28
-Samuel A.,$30.97/hr,5.0,2,3,2
-Andrei G.,$36.13/hr,5.0,1,3,None
-Denis G.,$46.45/hr,5.0,49,11,133
-Marissa W.,$46.45/hr,5.0,20,21,None
-Amir D.,$45.42/hr,4.7,3,5,None
-Amgalan B.,$30.97/hr,Not found,Not found,Not found,None
-Timothy A.,$92.91/hr,5.0,12,18,None
-Bolot B.,$46.45/hr,4.7,67,9,210
-Dylan J.,$45.42/hr,4.7,14,14,37
-Zachary A.,$51.62/hr,5.0,5,9,11
-Sergei K.,$87.75/hr,5.0,4,9,None
-Ray H.,$36.13/hr,5.0,2,2,None
-Yerlan T.,$41.29/hr,5.0,4,5,6
-Roman A.,$46.45/hr,5.0,4,12,None
-Ramzan U.,$51.62/hr,5.0,68,8,228
-Marat B.,$82.59/hr,5.0,5,7,None
-Roger C.,$51.62/hr,4.8,16,28,29
-Johnattan A.,$103.24/hr,4.9,311,25,724
-Andre C.,$52.65/hr,Not found,Not found,Not found,None
-Alex M.,$55.75/hr,5.0,3,3,2
-Balzhin S.,$61.94/hr,5.0,4,8,None
-Jean Y.,$154.86/hr,5.0,4,7,None
-Pavel K.,$51.62/hr,5.0,2,3,None
-Adam R.,$129.05/hr,Not found,Not found,Not found,None
-Ray B.,$51.62/hr,Not found,Not found,Not found,None
-Evgenii G.,$46.45/hr,5.0,69,3,184
-Danny Z.,$72.26/hr,5.0,2,2,3
-Oleksandr K.,$69.17/hr,5.0,1,3,4
-Dmitrii A.,$46.45/hr,Not found,Not found,Not found,None
-Nelson G.,$82.59/hr,Not found,Not found,Not found,None
-Samuel F.,$51.62/hr,Not found,Not found,Not found,None
-Budakhan D.,$74.33/hr,Not found,Not found,Not found,None
-Az O.,$103.24/hr,4.9,18,27,None
-Stjuart D.,$51.62/hr,5.0,1,2,None
-Hakeem M.,$103.24/hr,5.0,14,25,32
-Ricardo E.,$61.94/hr,Not found,Not found,Not found,None
-Dan C.,$51.62/hr,Not found,Not found,Not found,None
-Claudeney N.,$103.24/hr,Not found,Not found,Not found,None
-Khalil E.,$51.62/hr,Not found,Not found,Not found,None
-Ashley L.,$77.43/hr,5.0,2,2,None
-Dmitrii K.,$36.13/hr,Not found,Not found,Not found,None
-Otar A.,$54.71/hr,Not found,Not found,Not found,None
+Anton C.,$39.23,5.0,5,8,None
+Grygorii K.,$49.55,4.9,29,12,54
+Azim S.,$82.59,5.0,123,188,191
+Denis D.,$46.45,5.0,8,15,14
+Joe P.,$45.42,4.9,25,50,53
+Viktor B.,$49.55,4.9,15,28,None
+Alikhan B.,$72.26,5.0,1059,140,1675
+Dmitrii B.,$43.36,5.0,51,93,89
+Oleksandr L.,$41.29,4.9,17,37,32
+Deven G.,$30.97,Not found,Not found,Not found,None
+Giorgi M.,$51.62,4.9,24,30,68
+Bair B.,$67.10,5.0,63,94,115
+Maxim S.,$43.36,5.0,32,18,48
+Franklin P.,$33.03,5.0,1,Not found,None
+Aldar T.,$30.97,5.0,1,Not found,None
+Dmytro T.,$55.75,5.0,31,44,45
+Maksim G.,$37.16,Not found,Not found,2,None
+Nikolay N.,$67.10,5.0,31,39,58
+Malik W.,$38.19,3.7,3,4,6
+Jas H.,$51.62,5.0,128,40,248
+Osita E.,$30.97,Not found,Not found,Not found,None
+Oleksandr V.,$34.06,5.0,2,3,None
+Elvek S.,$51.62,5.0,103,26,307
+Oleg S.,$62.97,4.9,158,119,347
+Sobir S.,$46.45,5.0,17,12,24
+Alfred B.,$51.62,4.9,201,31,313
+Vladislav K.,$56.78,5.0,144,40,241
+Yuri Z.,$77.43,5.0,65,48,90
+Lenur Y.,$36.13,4.8,5,8,None
+Cornelious S.,$50.58,4.9,98,15,251
+Yurii Z.,$53.68,4.8,45,75,101
+Erdenibelik B.,$51.62,4.9,10,17,19
+Luis S.,$50.58,4.8,11,16,26
+Yaro C.,$51.62,5.0,73,10,131
+Viktor N.,$41.29,5.0,43,16,125
+Oleksandr P.,$53.68,5.0,9,14,16
+Charles S.,$46.45,5.0,4,10,None
+Alisher K.,$92.91,5.0,11,15,19
+Vitalii B.,$67.10,5.0,16,9,22
+Roman I.,$73.30,5.0,21,25,26
+Terrel A.,$123.89,5.0,46,66,91
+Anton G.,$51.62,5.0,198,29,612
+Benjamin H.,$49.55,5.0,15,27,30
+Carlos S.,$72.26,5.0,26,37,None
+Dicky M.,$47.49,5.0,3,6,5
+Junior M.,$54.71,5.0,125,42,200
+George F.,$46.45,4.8,40,18,81
+BAIRO T.,$72.26,4.7,19,25,43
+Viktor T.,$51.62,5.0,2,5,None
+Jonathan M.,$47.49,5.0,18,8,36
+Roman C.,$41.29,5.0,4,5,7
+Lamar B.,$59.88,4.9,90,69,231
+Stylianos K.,$82.59,4.9,33,43,52
+Morgan H.,$50.58,5.0,119,185,187
+Pavel P.,$61.94,5.0,12,24,None
+Sergey M.,$45.42,5.0,33,6,65
+Wayne Y.,$30.97,5.0,1,Not found,4
+Juan E.,$81.56,5.0,15,29,28
+Andrei G.,$36.13,5.0,1,3,None
+Denis G.,$46.45,5.0,49,11,133
+Jah L.,$34.06,5.0,10,2,21
+Marissa W.,$46.45,5.0,20,21,None
+Amgalan B.,$30.97,Not found,Not found,Not found,None
+Timothy A.,$92.91,5.0,12,18,None
+Bolot B.,$46.45,4.7,67,9,210
+Dylan J.,$45.42,4.7,14,14,37
+Zachary A.,$51.62,5.0,5,9,11
+Sergei K.,$87.75,5.0,4,9,None
+Ray H.,$36.13,5.0,2,2,None
+Yerlan T.,$41.29,5.0,4,5,6
+Shamil D.,$61.94,5.0,89,31,288
+Roman A.,$46.45,5.0,4,12,None
+Ramzan U.,$51.62,5.0,68,8,228
+Marat B.,$82.59,5.0,5,7,None
+Roger C.,$51.62,4.8,16,28,29
+Johnattan A.,$103.24,4.9,311,25,724
+Andre C.,$52.65,Not found,Not found,Not found,None
+Alex M.,$55.75,5.0,3,3,2
+Balzhin S.,$61.94,5.0,4,8,None
+Jean Y.,$154.86,5.0,4,7,None
+Pavel K.,$51.62,5.0,2,3,None
+Adam R.,$129.05,Not found,Not found,Not found,None
+Timothy A.,$51.62,4.9,58,4,110
+Ray B.,$51.62,Not found,Not found,Not found,None
+Evgenii G.,$46.45,5.0,69,3,184
+Danny Z.,$72.26,5.0,2,2,3
+Oleksandr K.,$69.17,5.0,1,3,4
+Dmitrii A.,$46.45,Not found,Not found,Not found,None
+Nelson G.,$82.59,Not found,Not found,Not found,None
+Budakhan D.,$74.33,Not found,Not found,Not found,None
+Az O.,$103.24,4.9,18,27,None
+Stjuart D.,$51.62,5.0,1,2,None
+Hakeem M.,$103.24,5.0,14,25,32
+Samuel F.,$103.24,Not found,Not found,Not found,None
+Dan C.,$51.62,Not found,Not found,Not found,None
+Claudeney N.,$103.24,Not found,Not found,Not found,None
+Khalil E.,$51.62,Not found,Not found,Not found,None
+Ashley L.,$77.43,5.0,2,2,None
+Dmitrii K.,$36.13,Not found,Not found,Not found,None
+Otar A.,$54.71,Not found,Not found,Not found,None

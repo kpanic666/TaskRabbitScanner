@@ -25,22 +25,22 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 logger = logging.getLogger(__name__)
 
 # Configuration constants - modify these to adjust behavior
-MAX_PAGES_FOR_TESTING = None       # Set to None to scan all pages, or number to limit pages
+MAX_PAGES_FOR_TESTING = 1      # Set to None to scan all pages, or number to limit pages
 
 # Sleep duration constants (in seconds) - modify these to adjust timing
 SLEEP_OVERLAY_REMOVAL = 1          # After removing overlays/popups
 SLEEP_IFRAME_REMOVAL = 0.5         # After removing iframe overlays
-SLEEP_CONTINUE_BUTTON = 3          # After clicking continue buttons
-SLEEP_PAGE_LOAD = 3                # General page loading wait
-SLEEP_SCROLL_WAIT = 1              # After scrolling elements into view
+SLEEP_CONTINUE_BUTTON = 1          # After clicking continue buttons
+SLEEP_PAGE_LOAD = 1                # General page loading wait
+SLEEP_SCROLL_WAIT = 0.5              # After scrolling elements into view
 SLEEP_ADDRESS_INPUT = 2            # After entering address
-SLEEP_ADDRESS_CONTINUE = 5         # After clicking continue from address
-SLEEP_FURNITURE_OPTION = 2         # After selecting furniture options
-SLEEP_SIZE_OPTION = 2              # After selecting size options
-SLEEP_TASK_DETAILS = 2             # After entering task details
-SLEEP_OPTIONS_COMPLETE = 5         # After completing all options
-SLEEP_PAGE_NAVIGATION = 5          # After navigating to new page
-SLEEP_CARD_LOADING = 8             # Waiting for tasker cards to load
+SLEEP_ADDRESS_CONTINUE = 2         # After clicking continue from address
+SLEEP_FURNITURE_OPTION = 1         # After selecting furniture options
+SLEEP_SIZE_OPTION = 1              # After selecting size options
+SLEEP_TASK_DETAILS = 1             # After entering task details
+SLEEP_OPTIONS_COMPLETE = 1         # After completing all options
+SLEEP_PAGE_NAVIGATION = 1         # After navigating to new page
+SLEEP_CARD_LOADING = 1             # Waiting for tasker cards to load
 
 class TaskRabbitParser:
     def __init__(self, headless: bool = False, max_pages: int = None):
@@ -743,6 +743,20 @@ class TaskRabbitParser:
         if len(name) > 50:
             return False
         
+        # Split into parts and validate structure
+        parts = name.split()
+        if len(parts) < 2:
+            return False
+        
+        # Last part should be a single letter followed by period (initial)
+        if not (len(parts[-1]) == 2 and parts[-1][0].isalpha() and parts[-1][1] == '.'):
+            return False
+        
+        # All other parts should be alphabetic (first name, middle names, etc.)
+        for part in parts[:-1]:
+            if not part.isalpha():
+                return False
+        
         return True
     
     def is_potential_name(self, text: str) -> bool:
@@ -1144,10 +1158,15 @@ class TaskRabbitParser:
                 except Exception:
                     pass
                 
+                # Clean hourly rate by removing '/hr' suffix
+                clean_rate = rate
+                if rate != "Rate not found" and rate.endswith('/hr'):
+                    clean_rate = rate.replace('/hr', '')
+                
                 # Create tasker entry
                 tasker = {
                     'name': name,
-                    'hourly_rate': rate,
+                    'hourly_rate': clean_rate,
                     'review_rating': review_rating,
                     'review_count': review_count,
                     'furniture_tasks': furniture_tasks,
