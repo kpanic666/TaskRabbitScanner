@@ -24,11 +24,11 @@ from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
 # Configure logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 # Configuration constants - modify these to adjust behavior
-MAX_PAGES_FOR_TESTING = None      # Set to None to scan all pages, or number to limit pages
+MAX_PAGES_FOR_TESTING = 2      # Set to None to scan all pages, or number to limit pages
 
 # Sleep duration constants (in seconds) - modify these to adjust timing
 SLEEP_OVERLAY_REMOVAL = 1          # After removing overlays/popups
@@ -1584,6 +1584,10 @@ class TaskRabbitParser:
                             logger.info(f"Generated complete page range: 1 to {max_page} ({len(all_pages)} pages)")
                         return all_pages
             
+                # Apply max_pages limit if specified
+                if self.max_pages and len(page_numbers) > self.max_pages:
+                    page_numbers = page_numbers[:self.max_pages]
+                    logger.info(f"Limited to first {self.max_pages} pages: {page_numbers}")
                 return page_numbers
 
             # Fallback to original selectors for other pagination types
