@@ -82,6 +82,15 @@ CATEGORIES = {
             {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
             {'type': 'task_details', 'value': 'fix cabinet door', 'final_button': 'See Taskers & Prices'}
         ]
+    },
+    'sealing_caulking': {
+        'name': 'Sealing and caulking',
+        'url': 'https://www.taskrabbit.com/services/handyman/sealing-caulking',
+        'options': [
+            # Sealing and caulking follows same flow as plumbing - size and task details only
+            {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
+            {'type': 'task_details', 'value': 'caulk bathroom tiles', 'final_button': 'See Taskers & Prices'}
+        ]
     }
 }
 
