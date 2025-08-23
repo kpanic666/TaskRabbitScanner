@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-TaskRabbit Furniture Assembly Tasker Parser
+TaskRabbit Multi-Category Tasker Parser
 
 This script automates the TaskRabbit booking flow to extract all available taskers
-for Furniture Assembly category and saves their names and hourly rates to CSV.
+for multiple categories (Furniture Assembly, Plumbing, etc.) and saves their names 
+and hourly rates to CSV files organized by category.
 Supports dynamic pagination to capture taskers from multiple pages.
 """
 
@@ -11,6 +12,8 @@ import time
 import csv
 import logging
 import re
+import os
+from datetime import datetime
 from typing import List, Dict
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -25,7 +28,7 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 logger = logging.getLogger(__name__)
 
 # Configuration constants - modify these to adjust behavior
-MAX_PAGES_FOR_TESTING = 2      # Set to None to scan all pages, or number to limit pages
+MAX_PAGES_FOR_TESTING = None      # Set to None to scan all pages, or number to limit pages
 
 # Sleep duration constants (in seconds) - modify these to adjust timing
 SLEEP_OVERLAY_REMOVAL = 1          # After removing overlays/popups
@@ -42,15 +45,49 @@ SLEEP_OPTIONS_COMPLETE = 1         # After completing all options
 SLEEP_PAGE_NAVIGATION = 1         # After navigating to new page
 SLEEP_CARD_LOADING = 1             # Waiting for tasker cards to load
 
+# Category configuration
+CATEGORIES = {
+    'furniture_assembly': {
+        'name': 'Furniture Assembly',
+        'url': 'https://www.taskrabbit.com/services/handyman/assemble-furniture',
+        'options': [
+            {'type': 'furniture_type', 'value': 'Both IKEA and non-IKEA furniture'},
+            {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
+            {'type': 'task_details', 'value': 'build stool'}
+        ]
+    },
+    'plumbing': {
+        'name': 'Plumbing',
+        'url': 'https://www.taskrabbit.com/services/handyman/plumbing',
+        'options': [
+            # Plumbing skips furniture type selection and goes directly to size and task details
+            {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
+            {'type': 'task_details', 'value': 'fix leaky faucet', 'final_button': 'See taskers & Price'}
+        ]
+    }
+}
+
 class TaskRabbitParser:
-    def __init__(self, headless: bool = False, max_pages: int = None):
+    def __init__(self, category: str = 'furniture_assembly', headless: bool = False, max_pages: int = None):
         """Initialize the TaskRabbit parser with Chrome WebDriver."""
         self.base_url = "https://www.taskrabbit.com"
         self.driver = None
         self.wait = None
         self.headless = headless
         self.max_pages = max_pages  # Limit number of pages to process (None = all pages)
-        self.csv_filename = "taskrabbit_taskers.csv"
+        
+        # Category configuration
+        if category not in CATEGORIES:
+            raise ValueError(f"Category '{category}' not supported. Available categories: {list(CATEGORIES.keys())}")
+        
+        self.category = category
+        self.category_config = CATEGORIES[category]
+        self.category_name = self.category_config['name']
+        
+        # Generate CSV filename with category and timestamp
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        category_filename = self.category_name.replace(' ', '_').lower()
+        self.csv_filename = f"Taskers/{category_filename}_{timestamp}.csv"
         
     def setup_driver(self):
         """Setup Chrome WebDriver with appropriate options."""
@@ -269,23 +306,23 @@ class TaskRabbitParser:
         logger.info("No Continue button found, proceeding without clicking")
         return False
     
-    def navigate_to_furniture_assembly(self):
-        """Navigate directly to furniture assembly page using shortcut URL"""
-        logger.info("Navigating directly to furniture assembly page...")
+    def navigate_to_category_page(self):
+        """Navigate directly to the category page using configured URL"""
+        logger.info(f"Navigating directly to {self.category_name} page...")
         
-        # Go directly to the furniture assembly page
-        direct_url = "https://www.taskrabbit.com/services/handyman/assemble-furniture"
+        # Go directly to the category page
+        direct_url = self.category_config['url']
         self.driver.get(direct_url)
         time.sleep(3)
         
-        logger.info(f"Loaded furniture assembly page directly: {direct_url}")
+        logger.info(f"Loaded {self.category_name} page directly: {direct_url}")
         
         # Close any overlays that might appear even with direct navigation
         self.close_overlays_and_popups()
         
-        self.debug_page_elements("Furniture Assembly page (direct navigation)")
+        self.debug_page_elements(f"{self.category_name} page (direct navigation)")
         
-        # Step 4: Try to find a direct booking link or navigate to general furniture assembly
+        # Try to find a direct booking link or navigate to category booking
         logger.info("Looking for booking options...")
         
         # Look for Book Now or similar buttons
@@ -426,13 +463,37 @@ class TaskRabbitParser:
         time.sleep(SLEEP_ADDRESS_CONTINUE)
         self.debug_page_elements("After clicking Continue")
         
-    def select_furniture_options(self):
-        """Select furniture assembly options through the booking flow."""
-        logger.info("Selecting furniture assembly options...")
-        self.debug_page_elements("Before selecting furniture options")
+    def select_category_options(self):
+        """Select category-specific options through the booking flow."""
+        logger.info(f"Selecting {self.category_name} options...")
+        self.debug_page_elements(f"Before selecting {self.category_name} options")
         
-        # Step 1: Look for "Both IKEA and non-IKEA furniture" option
-        logger.info("Looking for 'Both IKEA and non-IKEA furniture' option...")
+        # Process each option defined in the category configuration
+        for option in self.category_config['options']:
+            option_type = option['type']
+            option_value = option['value']
+            
+            logger.info(f"Processing option: {option_type} = {option_value}")
+            
+            if option_type == 'furniture_type':
+                self._select_furniture_type_option(option_value)
+            elif option_type == 'size':
+                self._select_size_option(option_value)
+            elif option_type == 'task_details':
+                final_button = option.get('final_button')
+                self._enter_task_details(option_value, final_button)
+            elif option_type == 'plumbing_type':
+                self._select_plumbing_type_option(option_value)
+            else:
+                logger.warning(f"Unknown option type: {option_type}")
+        
+        time.sleep(SLEEP_OPTIONS_COMPLETE)
+        self.debug_page_elements(f"After {self.category_name} options selection")
+    
+    def _select_furniture_type_option(self, option_value: str):
+        """Select furniture type option (for furniture assembly category)."""
+        
+        logger.info(f"Looking for '{option_value}' option...")
         
         # First, look for the question text to confirm we're on the right page
         question_indicators = [
@@ -450,13 +511,13 @@ class TaskRabbitParser:
         else:
             logger.info("Furniture type question not clearly identified, proceeding with selection")
         
-        # Comprehensive selectors for "Both IKEA and non-IKEA furniture" option
+        # Comprehensive selectors for the furniture type option
         furniture_type_selectors = [
             # Direct text matches
-            "//button[contains(text(), 'Both IKEA and non-IKEA furniture')]",
-            "//label[contains(text(), 'Both IKEA and non-IKEA furniture')]",
-            "//div[contains(text(), 'Both IKEA and non-IKEA furniture')]",
-            "//span[contains(text(), 'Both IKEA and non-IKEA furniture')]",
+            f"//button[contains(text(), '{option_value}')]",
+            f"//label[contains(text(), '{option_value}')]",
+            f"//div[contains(text(), '{option_value}')]",
+            f"//span[contains(text(), '{option_value}')]",
             
             # Variations with different casing
             "//button[contains(text(), 'Both IKEA and non-IKEA')]",
@@ -465,15 +526,15 @@ class TaskRabbitParser:
             "//label[contains(text(), 'IKEA and non-IKEA')]",
             
             # Radio button or checkbox inputs with associated labels
-            "//input[@type='radio']/following-sibling::*[contains(text(), 'Both IKEA and non-IKEA')]",
-            "//input[@type='checkbox']/following-sibling::*[contains(text(), 'Both IKEA and non-IKEA')]",
-            "//input[@type='radio']/parent::*[contains(text(), 'Both IKEA and non-IKEA')]",
-            "//input[@type='checkbox']/parent::*[contains(text(), 'Both IKEA and non-IKEA')]",
+            f"//input[@type='radio']/following-sibling::*[contains(text(), '{option_value}')]",
+            f"//input[@type='checkbox']/following-sibling::*[contains(text(), '{option_value}')]",
+            f"//input[@type='radio']/parent::*[contains(text(), '{option_value}')]",
+            f"//input[@type='checkbox']/parent::*[contains(text(), '{option_value}')]",
             
             # Value-based selections
             "//input[@value='both']",
             "//input[@value='both_ikea_non_ikea']",
-            "//option[contains(text(), 'Both IKEA and non-IKEA')]",
+            f"//option[contains(text(), '{option_value}')]",
             
             # Fallback options
             "//button[contains(text(), 'Both')]",
@@ -489,7 +550,7 @@ class TaskRabbitParser:
                 for element in elements:
                     if element.is_displayed() and element.is_enabled():
                         both_option = element
-                        logger.info(f"Found 'Both IKEA and non-IKEA furniture' option with selector: {selector}")
+                        logger.info(f"Found '{option_value}' option with selector: {selector}")
                         logger.info(f"Element text: '{element.text}'")
                         break
                 if both_option:
@@ -516,7 +577,7 @@ class TaskRabbitParser:
                     both_option.click()
                 
                 time.sleep(SLEEP_FURNITURE_OPTION)
-                logger.info("Successfully selected 'Both IKEA and non-IKEA furniture' option")
+                logger.info(f"Successfully selected '{option_value}' option")
             except Exception as e:
                 logger.warning(f"Failed to click furniture option: {e}")
                 # Try JavaScript click as fallback
@@ -526,7 +587,7 @@ class TaskRabbitParser:
                 except Exception as e2:
                     logger.error(f"Failed to select furniture option with JavaScript: {e2}")
         else:
-            logger.warning("Could not find 'Both IKEA and non-IKEA furniture' option")
+            logger.warning(f"Could not find '{option_value}' option")
             # Debug: log available options
             try:
                 all_buttons = self.driver.find_elements(By.XPATH, "//button | //label | //input[@type='radio'] | //input[@type='checkbox']")
@@ -541,17 +602,18 @@ class TaskRabbitParser:
         
         # Continue to next step
         self.click_continue_button()
+    
+    def _select_size_option(self, option_value: str):
+        """Select size option."""
+        logger.info(f"Looking for '{option_value}' size selection...")
         
-        # Step 2: Look for "Medium - Est. 2-3 hrs" size selection
-        logger.info("Looking for 'Medium - Est. 2-3 hrs' size selection...")
-        
-        # Comprehensive selectors for "Medium - Est. 2-3 hrs" option
+        # Comprehensive selectors for the size option
         size_selectors = [
             # Direct text matches with full text
-            "//button[contains(text(), 'Medium - Est. 2-3 hrs')]",
-            "//label[contains(text(), 'Medium - Est. 2-3 hrs')]",
-            "//div[contains(text(), 'Medium - Est. 2-3 hrs')]",
-            "//span[contains(text(), 'Medium - Est. 2-3 hrs')]",
+            f"//button[contains(text(), '{option_value}')]",
+            f"//label[contains(text(), '{option_value}')]",
+            f"//div[contains(text(), '{option_value}')]",
+            f"//span[contains(text(), '{option_value}')]",
             
             # Variations with different formatting
             "//button[contains(text(), 'Medium') and contains(text(), '2-3 hrs')]",
@@ -560,15 +622,15 @@ class TaskRabbitParser:
             "//span[contains(text(), 'Medium') and contains(text(), '2-3 hrs')]",
             
             # Radio button or checkbox inputs with associated labels
-            "//input[@type='radio']/following-sibling::*[contains(text(), 'Medium - Est. 2-3 hrs')]",
-            "//input[@type='checkbox']/following-sibling::*[contains(text(), 'Medium - Est. 2-3 hrs')]",
-            "//input[@type='radio']/parent::*[contains(text(), 'Medium - Est. 2-3 hrs')]",
-            "//input[@type='checkbox']/parent::*[contains(text(), 'Medium - Est. 2-3 hrs')]",
+            f"//input[@type='radio']/following-sibling::*[contains(text(), '{option_value}')]",
+            f"//input[@type='checkbox']/following-sibling::*[contains(text(), '{option_value}')]",
+            f"//input[@type='radio']/parent::*[contains(text(), '{option_value}')]",
+            f"//input[@type='checkbox']/parent::*[contains(text(), '{option_value}')]",
             
             # Value-based selections
             "//input[@value='medium']",
             "//input[@value='medium_2_3_hrs']",
-            "//option[contains(text(), 'Medium - Est. 2-3 hrs')]",
+            f"//option[contains(text(), '{option_value}')]",
             
             # Fallback options
             "//button[contains(text(), 'Medium')]",
@@ -584,7 +646,7 @@ class TaskRabbitParser:
                 for element in elements:
                     if element.is_displayed() and element.is_enabled():
                         medium_option = element
-                        logger.info(f"Found 'Medium - Est. 2-3 hrs' option with selector: {selector}")
+                        logger.info(f"Found '{option_value}' option with selector: {selector}")
                         logger.info(f"Element text: '{element.text}'")
                         break
                 if medium_option:
@@ -610,7 +672,7 @@ class TaskRabbitParser:
                     medium_option.click()
                 
                 time.sleep(SLEEP_SIZE_OPTION)
-                logger.info("Successfully selected 'Medium - Est. 2-3 hrs' option")
+                logger.info(f"Successfully selected '{option_value}' option")
                 
                 # Scroll down to make sure Continue button is visible
                 logger.info("Scrolling down to reveal Continue button...")
@@ -628,7 +690,7 @@ class TaskRabbitParser:
                 except Exception as e2:
                     logger.error(f"Failed to select medium size option with JavaScript: {e2}")
         else:
-            logger.warning("Could not find 'Medium - Est. 2-3 hrs' option")
+            logger.warning(f"Could not find '{option_value}' option")
             # Debug: log available size options
             try:
                 all_buttons = self.driver.find_elements(By.XPATH, "//button | //label | //input[@type='radio'] | //input[@type='checkbox']")
@@ -640,10 +702,10 @@ class TaskRabbitParser:
                 logger.info(f"Could not debug available size options: {e}")
             
             logger.info("Proceeding without selecting size")
-        
-
-        # Step 4: Look for task details text box and enter "build stool"
-        logger.info("Looking for task details text box to enter 'build stool'...")
+    
+    def _enter_task_details(self, task_details: str, final_button: str = None):
+        """Enter task details in the text field."""
+        logger.info(f"Looking for task details text box to enter '{task_details}'...")
         
         # Comprehensive selectors for task details text input
         task_details_selectors = [
@@ -688,25 +750,31 @@ class TaskRabbitParser:
         
         if task_details_field:
             try:
-                # Clear the field and enter "build stool"
+                # Clear the field and enter task details
                 task_details_field.clear()
-                task_details_field.send_keys("build stool")
+                task_details_field.send_keys(task_details)
                 time.sleep(SLEEP_TASK_DETAILS)
-                logger.info("Successfully entered 'build stool' in task details field")
+                logger.info(f"Successfully entered '{task_details}' in task details field")
                 
-                # Scroll down to make sure Continue button is visible
-                logger.info("Scrolling down to reveal Continue button...")
+                # Scroll down to make sure button is visible
+                logger.info("Scrolling down to reveal button...")
                 self.driver.execute_script("window.scrollBy(0, 300);")
                 time.sleep(SLEEP_SCROLL_WAIT)
                 
-                self.click_continue_button()
+                if final_button:
+                    self.click_final_button(final_button)
+                else:
+                    self.click_continue_button()
             except Exception as e:
                 logger.warning(f"Failed to enter task details: {e}")
                 # Try JavaScript approach as fallback
                 try:
-                    self.driver.execute_script("arguments[0].value = 'build stool';", task_details_field)
+                    self.driver.execute_script(f"arguments[0].value = '{task_details}';", task_details_field)
                     logger.info("Successfully entered task details using JavaScript")
-                    self.click_continue_button()
+                    if final_button:
+                        self.click_final_button(final_button)
+                    else:
+                        self.click_continue_button()
                 except Exception as e2:
                     logger.error(f"Failed to enter task details with JavaScript: {e2}")
         else:
@@ -722,9 +790,50 @@ class TaskRabbitParser:
                 logger.info(f"Could not debug available text inputs: {e}")
             
             logger.info("Proceeding without entering task details")
+    
+    def click_final_button(self, button_text: str):
+        """Click the final button with specific text (e.g., 'See taskers & Price')."""
+        logger.info(f"Looking for '{button_text}' button...")
         
-        time.sleep(SLEEP_OPTIONS_COMPLETE)
-        self.debug_page_elements("After furniture options selection")
+        # Comprehensive selectors for the final button
+        button_selectors = [
+            f"//button[contains(text(), '{button_text}')]",
+            f"//a[contains(text(), '{button_text}')]",
+            f"//input[@type='submit' and contains(@value, '{button_text}')]",
+            f"//button[contains(@aria-label, '{button_text}')]",
+            f"//div[contains(@role, 'button') and contains(text(), '{button_text}')]",
+            # Fallback patterns for "See taskers & Price"
+            "//button[contains(text(), 'See taskers')]",
+            "//a[contains(text(), 'See taskers')]",
+            "//button[contains(text(), 'taskers') and contains(text(), 'Price')]",
+            "//a[contains(text(), 'taskers') and contains(text(), 'Price')]"
+        ]
+        
+        for selector in button_selectors:
+            try:
+                final_btn = WebDriverWait(self.driver, SLEEP_CONTINUE_BUTTON).until(
+                    EC.element_to_be_clickable((By.XPATH, selector))
+                )
+                logger.info(f"Found '{button_text}' button with selector: {selector}")
+                final_btn.click()
+                time.sleep(SLEEP_CONTINUE_BUTTON)
+                return True
+            except TimeoutException:
+                continue
+        
+        logger.warning(f"No '{button_text}' button found, trying default continue button")
+        return self.click_continue_button()
+    
+    def _select_plumbing_type_option(self, option_value: str):
+        """Select plumbing type option (for plumbing category)."""
+        logger.info(f"Looking for plumbing option: '{option_value}'...")
+        
+        # For plumbing, the flow might be simpler and go directly to task details
+        # This is a placeholder that can be expanded based on actual plumbing page structure
+        logger.info("Plumbing category detected - using simplified flow")
+        
+        # Continue to next step
+        self.click_continue_button()
                
     def is_valid_person_name(self, name: str) -> bool:
         """Check if a string looks like a valid person name."""
@@ -1843,20 +1952,24 @@ class TaskRabbitParser:
     def run(self):
         """Main execution method."""
         try:
-            logger.info("Starting TaskRabbit parser...")
+            logger.info(f"Starting TaskRabbit parser for {self.category_name}...")
+            
+            # Ensure Taskers directory exists
+            os.makedirs('Taskers', exist_ok=True)
+            
             self.setup_driver()
             
             # Navigate through the booking flow
-            self.navigate_to_furniture_assembly()
+            self.navigate_to_category_page()
             self.enter_address_details()
-            self.select_furniture_options()
+            self.select_category_options()
             
             # Extract and save data from all pages
             taskers = self.extract_tasker_data()
             
             if taskers:
                 self.save_to_csv(taskers)
-                logger.info(f"Successfully extracted {len(taskers)} taskers")
+                logger.info(f"Successfully extracted {len(taskers)} {self.category_name} taskers to {self.csv_filename}")
             else:
                 logger.error("No taskers found!")
                 
@@ -1868,6 +1981,103 @@ class TaskRabbitParser:
                 self.driver.quit()
                 logger.info("Browser closed")
 
-if __name__ == "__main__":
-    parser = TaskRabbitParser(headless=False, max_pages=MAX_PAGES_FOR_TESTING)
+def run_parser_for_category(category: str, headless: bool = False, max_pages: int = None):
+    """Run the parser for a specific category."""
+    parser = TaskRabbitParser(category=category, headless=headless, max_pages=max_pages)
     parser.run()
+    return parser.csv_filename
+
+def run_all_categories(headless: bool = False, max_pages: int = None):
+    """Run the parser for all configured categories."""
+    results = {}
+    for category in CATEGORIES.keys():
+        logger.info(f"\n{'='*50}")
+        logger.info(f"Starting extraction for {CATEGORIES[category]['name']}")
+        logger.info(f"{'='*50}")
+        try:
+            csv_file = run_parser_for_category(category, headless, max_pages)
+            results[category] = csv_file
+            logger.info(f"Completed {CATEGORIES[category]['name']} - saved to {csv_file}")
+        except Exception as e:
+            logger.error(f"Failed to extract {CATEGORIES[category]['name']}: {e}")
+            results[category] = None
+    
+    return results
+
+def interactive_category_selection():
+    """Interactive category selection when no command line arguments provided."""
+    print("TaskRabbit Multi-Category Parser")
+    print("\nAvailable categories:")
+    
+    # Display categories with numbers
+    category_list = list(CATEGORIES.keys())
+    for i, category_key in enumerate(category_list, 1):
+        category_name = CATEGORIES[category_key]['name']
+        print(f"{i}. {category_name} ({category_key})")
+    
+    print(f"{len(category_list) + 1}. All categories")
+    
+    while True:
+        try:
+            choice = input(f"\nSelect category (1-{len(category_list) + 1}) or 'q' to quit: ").strip()
+            
+            if choice.lower() == 'q':
+                print("Cancelled.")
+                return None
+            
+            choice_num = int(choice)
+            
+            if 1 <= choice_num <= len(category_list):
+                selected_category = category_list[choice_num - 1]
+                print(f"Selected: {CATEGORIES[selected_category]['name']}")
+                return selected_category
+            elif choice_num == len(category_list) + 1:
+                print("Selected: All categories")
+                return 'all'
+            else:
+                print(f"Invalid choice. Please enter 1-{len(category_list) + 1} or 'q'.")
+                
+        except ValueError:
+            print("Invalid input. Please enter a number or 'q'.")
+        except KeyboardInterrupt:
+            print("\nCancelled.")
+            return None
+
+if __name__ == "__main__":
+    import sys
+    
+    # Check if category is specified as command line argument
+    if len(sys.argv) > 1:
+        specified_category = sys.argv[1].lower()
+        if specified_category == 'all':
+            # Run all categories
+            results = run_all_categories(headless=False, max_pages=MAX_PAGES_FOR_TESTING)
+            print("\nExtraction Results:")
+            for cat, file in results.items():
+                status = "✓" if file else "✗"
+                print(f"{status} {CATEGORIES[cat]['name']}: {file or 'Failed'}")
+        elif specified_category in CATEGORIES:
+            category = specified_category
+            parser = TaskRabbitParser(category=category, headless=False, max_pages=MAX_PAGES_FOR_TESTING)
+            parser.run()
+        else:
+            print(f"Unknown category: {specified_category}")
+            print(f"Available categories: {', '.join(CATEGORIES.keys())}, all")
+            sys.exit(1)
+    else:
+        # Interactive category selection
+        selected_category = interactive_category_selection()
+        
+        if selected_category is None:
+            sys.exit(0)
+        elif selected_category == 'all':
+            # Run all categories
+            results = run_all_categories(headless=False, max_pages=MAX_PAGES_FOR_TESTING)
+            print("\nExtraction Results:")
+            for cat, file in results.items():
+                status = "✓" if file else "✗"
+                print(f"{status} {CATEGORIES[cat]['name']}: {file or 'Failed'}")
+        else:
+            # Run selected category
+            parser = TaskRabbitParser(category=selected_category, headless=False, max_pages=MAX_PAGES_FOR_TESTING)
+            parser.run()
