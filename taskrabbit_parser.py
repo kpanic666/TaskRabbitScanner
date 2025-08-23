@@ -1158,6 +1158,57 @@ class TaskRabbitParser:
                 except Exception:
                     pass
                 
+                # Extract "2 Hour Minimum" flag
+                two_hour_minimum = False
+                try:
+                    card_text = card.text
+                    card_html = card.get_attribute('innerHTML') or ''
+                    
+                    # Look for "2 Hour Minimum" text in various formats
+                    minimum_patterns = [
+                        r'2\s*Hour\s*Minimum',
+                        r'2\s*hr\s*minimum',
+                        r'2\s*hour\s*min',
+                        r'minimum\s*2\s*hour',
+                        r'min\s*2\s*hr'
+                    ]
+                    
+                    # Check in card text first
+                    for pattern in minimum_patterns:
+                        if re.search(pattern, card_text, re.IGNORECASE):
+                            two_hour_minimum = True
+                            break
+                    
+                    # If not found in text, check in HTML
+                    if not two_hour_minimum:
+                        for pattern in minimum_patterns:
+                            if re.search(pattern, card_html, re.IGNORECASE):
+                                two_hour_minimum = True
+                                break
+                    
+                    # Also look for specific elements that might contain the flag
+                    if not two_hour_minimum:
+                        minimum_selectors = [
+                            ".//*[contains(text(), '2 Hour Minimum')]",
+                            ".//*[contains(text(), '2 hour minimum')]",
+                            ".//*[contains(text(), '2hr minimum')]",
+                            ".//*[contains(text(), 'Minimum 2 hour')]",
+                            ".//*[contains(text(), 'minimum 2 hr')]"
+                        ]
+                        
+                        for selector in minimum_selectors:
+                            try:
+                                elements = card.find_elements(By.XPATH, selector)
+                                if elements and any(elem.is_displayed() for elem in elements):
+                                    two_hour_minimum = True
+                                    break
+                            except Exception:
+                                continue
+                                
+                except Exception as e:
+                    logger.debug(f"Error extracting 2 Hour Minimum flag: {e}")
+                    pass
+                
                 # Clean hourly rate by removing '/hr' suffix
                 clean_rate = rate
                 if rate != "Rate not found" and rate.endswith('/hr'):
@@ -1170,11 +1221,12 @@ class TaskRabbitParser:
                     'review_rating': review_rating,
                     'review_count': review_count,
                     'furniture_tasks': furniture_tasks,
-                    'overall_tasks': overall_tasks
+                    'overall_tasks': overall_tasks,
+                    'two_hour_minimum': two_hour_minimum
                 }
                 
                 taskers.append(tasker)
-                logger.info(f"Card {i+1}: {name} - {rate} - Rating: {review_rating} ({review_count} reviews) - Tasks: {furniture_tasks} furniture, {overall_tasks} overall")
+                logger.info(f"Card {i+1}: {name} - {rate} - Rating: {review_rating} ({review_count} reviews) - Tasks: {furniture_tasks} furniture, {overall_tasks} overall - 2Hr Min: {two_hour_minimum}")
                 
                 # Debug: log card structure if rate not found
                 if rate == "Rate not found":
@@ -1729,7 +1781,7 @@ class TaskRabbitParser:
         logger.info(f"Saving {len(taskers)} taskers to CSV...")
         
         with open(self.csv_filename, 'w', newline='', encoding='utf-8') as csvfile:
-            fieldnames = ['name', 'hourly_rate', 'review_rating', 'review_count', 'furniture_tasks', 'overall_tasks']
+            fieldnames = ['name', 'hourly_rate', 'review_rating', 'review_count', 'furniture_tasks', 'overall_tasks', 'two_hour_minimum']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
             
