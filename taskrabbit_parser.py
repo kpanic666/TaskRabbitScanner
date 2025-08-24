@@ -109,6 +109,15 @@ CATEGORIES = {
             {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
             {'type': 'task_details', 'value': 'install tile flooring', 'final_button': 'See Taskers & Prices'}
         ]
+    },
+    'wall_repair': {
+        'name': 'Wall Repair',
+        'url': 'https://www.taskrabbit.com/services/handyman/drywall-repair',
+        'options': [
+            # Wall repair follows same flow as plumbing - size and task details only
+            {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
+            {'type': 'task_details', 'value': 'patch drywall hole', 'final_button': 'See Taskers & Prices'}
+        ]
     }
 }
 
