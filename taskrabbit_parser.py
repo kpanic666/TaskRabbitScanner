@@ -91,6 +91,24 @@ CATEGORIES = {
             {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
             {'type': 'task_details', 'value': 'caulk bathroom tiles', 'final_button': 'See Taskers & Prices'}
         ]
+    },
+    'appliance_installation': {
+        'name': 'Appliance Installation',
+        'url': 'https://www.taskrabbit.com/services/handyman/appliance-repairs',
+        'options': [
+            # Appliance installation follows same flow as plumbing - size and task details only
+            {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
+            {'type': 'task_details', 'value': 'install dishwasher', 'final_button': 'See Taskers & Prices'}
+        ]
+    },
+    'flooring_tiling': {
+        'name': 'Flooring & Tiling Help',
+        'url': 'https://www.taskrabbit.com/services/handyman/flooring-tiling-help',
+        'options': [
+            # Flooring & Tiling follows same flow as plumbing - size and task details only
+            {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
+            {'type': 'task_details', 'value': 'install tile flooring', 'final_button': 'See Taskers & Prices'}
+        ]
     }
 }
 
