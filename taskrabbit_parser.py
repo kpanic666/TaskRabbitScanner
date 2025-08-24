@@ -118,6 +118,33 @@ CATEGORIES = {
             {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
             {'type': 'task_details', 'value': 'patch drywall hole', 'final_button': 'See Taskers & Prices'}
         ]
+    },
+    'window_blinds_repair': {
+        'name': 'Window & Blinds Repair',
+        'url': 'https://www.taskrabbit.com/services/handyman/window-repair',
+        'options': [
+            # Window & Blinds repair follows same flow as plumbing - size and task details only
+            {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
+            {'type': 'task_details', 'value': 'fix window blinds', 'final_button': 'See Taskers & Prices'}
+        ]
+    },
+    'smart_home': {
+        'name': 'Smart Home Installation',
+        'url': 'https://www.taskrabbit.com/services/handyman/smart-home-installation',
+        'options': [
+            # Smart Home Installation follows same flow as plumbing - size and task details only
+            {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
+            {'type': 'task_details', 'value': 'install smart thermostat', 'final_button': 'See Taskers & Prices'}
+        ]
+    },
+    'interior_painting': {
+        'name': 'Interior Painting',
+        'url': 'https://www.taskrabbit.com/services/handyman/painting',
+        'options': [
+            # Interior Painting follows same flow as plumbing - size and task details only
+            {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
+            {'type': 'task_details', 'value': 'paint bedroom walls', 'final_button': 'See Taskers & Prices'}
+        ]
     }
 }
 
