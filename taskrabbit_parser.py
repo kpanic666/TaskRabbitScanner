@@ -132,8 +132,9 @@ CATEGORIES = {
         'name': 'Smart Home Installation',
         'url': 'https://www.taskrabbit.com/services/handyman/smart-home-installation',
         'options': [
-            # Smart Home Installation follows same flow as plumbing - size and task details only
+            # Smart Home Installation has additional Vehicle Requirements step
             {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
+            {'type': 'vehicle_requirements', 'value': 'Not needed for task'},
             {'type': 'task_details', 'value': 'install smart thermostat', 'final_button': 'See Taskers & Prices'}
         ]
     },
@@ -552,6 +553,8 @@ class TaskRabbitParser:
                 self._enter_task_details(option_value, final_button)
             elif option_type == 'plumbing_type':
                 self._select_plumbing_type_option(option_value)
+            elif option_type == 'vehicle_requirements':
+                self._select_vehicle_requirements_option(option_value)
             else:
                 logger.warning(f"Unknown option type: {option_type}")
         
@@ -901,6 +904,59 @@ class TaskRabbitParser:
         
         # Continue to next step
         self.click_continue_button()
+
+    def _select_vehicle_requirements_option(self, option_value: str):
+        """Select vehicle requirements option (for Smart Home Installation category)."""
+        logger.info("Selecting vehicle requirements option...")
+        
+        try:
+            # Wait for the vehicle requirements section to load
+            time.sleep(2)
+            
+            # Look for "Not needed for task" option
+            selectors = [
+                "//span[contains(text(), 'Not needed for task')]",
+                "//label[contains(text(), 'Not needed for task')]",
+                "//div[contains(text(), 'Not needed for task')]",
+                "//button[contains(text(), 'Not needed for task')]"
+            ]
+            
+            option_selected = False
+            for selector in selectors:
+                try:
+                    elements = self.driver.find_elements(By.XPATH, selector)
+                    if elements:
+                        element = elements[0]
+                        # Try to find the clickable parent (radio button or checkbox)
+                        clickable_element = element
+                        
+                        # Check if we need to click a parent element (radio button/checkbox)
+                        parent = element.find_element(By.XPATH, "./..")
+                        if parent.tag_name in ['label', 'div'] and 'input' in parent.get_attribute('innerHTML'):
+                            clickable_element = parent
+                        
+                        self.driver.execute_script("arguments[0].scrollIntoView(true);", clickable_element)
+                        time.sleep(1)
+                        clickable_element.click()
+                        logger.info("Selected 'Not needed for task' option")
+                        option_selected = True
+                        break
+                except Exception as e:
+                    continue
+            
+            if not option_selected:
+                logger.warning("Could not find 'Not needed for task' option, trying to continue anyway")
+            
+            # Wait a moment for the selection to register
+            time.sleep(1)
+            
+            # Continue to next step
+            self.click_continue_button()
+            
+        except Exception as e:
+            logger.error(f"Error selecting vehicle requirements option: {e}")
+            # Try to continue anyway
+            self.click_continue_button()
                
     def is_valid_person_name(self, name: str) -> bool:
         """Check if a string looks like a valid person name."""
@@ -1210,7 +1266,7 @@ class TaskRabbitParser:
                                 if '$' in rate_text and '/hr' in rate_text and len(rate_text) < 20:
                                     # Validate it's a proper rate format
                                     import re
-                                    if re.search(r'\$\d+\.\d+/hr', rate_text):
+                                    if re.search(r'\$\d+(?:\.\d+)?/hr', rate_text):
                                         rate = rate_text
                                         break
                         if rate != "Rate not found":
@@ -1224,14 +1280,14 @@ class TaskRabbitParser:
                         # Strategy 1: Extract from card text
                         card_text = card.text
                         import re
-                        rate_matches = re.findall(r'\$\d+\.\d+/hr', card_text)
+                        rate_matches = re.findall(r'\$\d+(?:\.\d+)?/hr', card_text)
                         if rate_matches:
                             rate = rate_matches[0]
                         else:
                             # Strategy 2: Extract from innerHTML
                             card_html = card.get_attribute('innerHTML')
                             if card_html:
-                                html_rate_matches = re.findall(r'\$\d+\.\d+/hr', card_html)
+                                html_rate_matches = re.findall(r'\$\d+(?:\.\d+)?/hr', card_html)
                                 if html_rate_matches:
                                     rate = html_rate_matches[0]
                                 else:
