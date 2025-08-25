@@ -1,6 +1,3 @@
-# Exclude all CSV files in Taskers directory
-Taskers/
-
 # Python cache files
 __pycache__/
 *.pyc
