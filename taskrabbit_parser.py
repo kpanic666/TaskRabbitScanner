@@ -28,22 +28,22 @@ logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s -
 logger = logging.getLogger(__name__)
 
 # Configuration constants - modify these to adjust behavior
-MAX_PAGES_FOR_TESTING = 4     # Set to None to scan all pages, or number to limit pages
+MAX_PAGES_FOR_TESTING = None     # Set to None to scan all pages, or number to limit pages
 
 # Sleep duration constants (in seconds) - modify these to adjust timing
 SLEEP_OVERLAY_REMOVAL = 0.5          # After removing overlays/popups
 SLEEP_IFRAME_REMOVAL = 0.5         # After removing iframe overlays
-SLEEP_CONTINUE_BUTTON = 1          # After clicking continue buttons
-SLEEP_PAGE_LOAD = 1                # General page loading wait
-SLEEP_SCROLL_WAIT = 0.5              # After scrolling elements into view
-SLEEP_ADDRESS_INPUT = 1            # After entering address
-SLEEP_ADDRESS_CONTINUE = 1         # After clicking continue from address
-SLEEP_FURNITURE_OPTION = 0.5         # After selecting furniture options
-SLEEP_SIZE_OPTION = 0.5              # After selecting size options
+SLEEP_CONTINUE_BUTTON = 2          # After clicking continue buttons
+SLEEP_PAGE_LOAD = 3                # General page loading wait
+SLEEP_SCROLL_WAIT = 1              # After scrolling elements into view
+SLEEP_ADDRESS_INPUT = 1.5            # After entering address
+SLEEP_ADDRESS_CONTINUE = 1.5         # After clicking continue from address
+SLEEP_FURNITURE_OPTION = 1         # After selecting furniture options
+SLEEP_SIZE_OPTION = 1              # After selecting size options
 SLEEP_TASK_DETAILS = 1             # After entering task details
-SLEEP_OPTIONS_COMPLETE = 1         # After completing all options
-SLEEP_PAGE_NAVIGATION = 1         # After navigating to new page
-SLEEP_CARD_LOADING = 1             # Waiting for tasker cards to load
+SLEEP_OPTIONS_COMPLETE = 3         # After completing all options
+SLEEP_PAGE_NAVIGATION = 3         # After navigating to new page
+SLEEP_CARD_LOADING = 5             # Waiting for tasker cards to load
 
 # Category configuration
 CATEGORIES = {
@@ -1210,8 +1210,8 @@ class TaskRabbitParser:
                                 # Try to find names in the card's innerHTML
                                 card_html = card.get_attribute('innerHTML')
                                 if card_html:
-                                    # Look for names in button text or span text (allow lowercase first letters)
-                                    html_name_patterns = re.findall(r'>([A-Za-z][a-z]+ [A-Z]\.)<|>([A-Z][A-Z]+ [A-Z]\.)<', card_html)
+                                    # Look for names in button text or span text (allow multi-word names and lowercase first letters)
+                                    html_name_patterns = re.findall(r'>([A-Za-z][a-z]+(?:\s+[A-Za-z][a-z]+)*\s+[A-Z]\.)<|>([A-Z][A-Z]+(?:\s+[A-Z][A-Z]+)*\s+[A-Z]\.)<', card_html)
                                     for pattern_match in html_name_patterns:
                                         potential_name = pattern_match[0] or pattern_match[1]
                                         if potential_name and self.is_potential_name(potential_name):
