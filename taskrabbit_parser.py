@@ -18,11 +18,15 @@ from typing import List, Dict
 from taskrabbit.categories import CATEGORIES
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from taskrabbit.utils import (
+    close_overlays_and_popups as utils_close_overlays_and_popups,
+    remove_all_overlays_aggressively as utils_remove_all_overlays_aggressively,
+    click_continue_button as utils_click_continue_button,
+)
 
 # Configure logging
 logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -90,187 +94,26 @@ class TaskRabbitParser:
         pass
     
     def close_overlays_and_popups(self):
-        """Close any overlays, popups, or modals that might interfere with navigation"""
-        # Checking for overlays/popups
-        
-        # First, handle iframe overlays specifically
-        try:
-            iframe_overlays = self.driver.find_elements(By.XPATH, "//iframe[contains(@aria-label, 'Modal Overlay')]")
-            for iframe in iframe_overlays:
-                if iframe.is_displayed():
-                    # Remove modal overlay iframe
-                    self.driver.execute_script("arguments[0].remove();", iframe)
-                    time.sleep(SLEEP_OVERLAY_REMOVAL)
-        except Exception:
-            pass  # No iframe overlays found
-        
-        # Handle parent containers of iframe overlays
-        try:
-            iframe_containers = self.driver.find_elements(By.XPATH, "//div[contains(@class, 'box-') and .//iframe]")
-            for container in iframe_containers:
-                if container.is_displayed():
-                    # Remove iframe container
-                    self.driver.execute_script("arguments[0].remove();", container)
-                    time.sleep(SLEEP_OVERLAY_REMOVAL)
-        except Exception:
-            pass  # No iframe containers found
-        
-        # List of common overlay selectors
-        overlay_selectors = [
-            # Facebook and social media overlays
-            "//div[contains(@class, 'fb_lightbox-overlay')]",
-            "//div[contains(@id, 'sidebar-overlay-lightbox')]",
-            
-            # Generic overlay selectors
-            "//div[contains(@class, 'overlay')]",
-            "//div[contains(@class, 'lightbox')]",
-            "//div[contains(@class, 'modal')]",
-            "//div[contains(@class, 'popup')]",
-            
-            # Close buttons
-            "//button[contains(@class, 'close')]",
-            "//div[contains(@class, 'close')]",
-            "//button[contains(@aria-label, 'close')]",
-            "//button[contains(@aria-label, 'Close')]",
-            "//span[contains(@class, 'close')]",
-            "//a[contains(@class, 'close')]",
-            
-            # X buttons
-            "//button[text()='×']",
-            "//button[text()='X']",
-            "//span[text()='×']",
-            "//span[text()='X']"
-        ]
-        
-        for selector in overlay_selectors:
-            try:
-                elements = self.driver.find_elements(By.XPATH, selector)
-                for element in elements:
-                    if element.is_displayed():
-                        try:
-                            element.click()
-                            pass  # Closed overlay/popup
-                            time.sleep(SLEEP_OVERLAY_REMOVAL)
-                        except Exception as e:
-                            # Try JavaScript click if regular click fails
-                            try:
-                                self.driver.execute_script("arguments[0].click();", element)
-                                pass  # Closed overlay/popup with JavaScript
-                                time.sleep(SLEEP_OVERLAY_REMOVAL)
-                            except Exception:
-                                logger.debug(f"Failed to close overlay with JavaScript: {e}")
-                                continue
-            except Exception as e:
-                logger.debug(f"Error with overlay selector {selector}: {e}")
-                continue
-        
-        # Additional method: Press ESC key to close modals
-        try:
-            self.driver.find_element(By.TAG_NAME, 'body').send_keys(Keys.ESCAPE)
-            pass  # Pressed ESC key
-            time.sleep(SLEEP_OVERLAY_REMOVAL)
-        except Exception:
-            pass  # Could not press ESC key
+        """Close overlays/popups via shared utils while preserving timing."""
+        sleeps = {
+            'SLEEP_OVERLAY_REMOVAL': SLEEP_OVERLAY_REMOVAL,
+        }
+        utils_close_overlays_and_popups(self.driver, self.wait, logger, sleeps)
     
     def remove_all_overlays_aggressively(self):
-        """Aggressively remove all types of overlays and modals that might block interactions"""
-        # Aggressively removing all overlays and modals
-        
-        # First, remove any iframe overlays with specific IDs or classes
-        try:
-            # Remove iframes with lightbox or modal in their ID/class
-            iframe_selectors = [
-                "//iframe[contains(@id, 'lightbox')]",
-                "//iframe[contains(@class, 'lightbox')]",
-                "//iframe[contains(@id, 'modal')]",
-                "//iframe[contains(@class, 'modal')]",
-                "//iframe[contains(@aria-label, 'Modal')]",
-                "//iframe[contains(@class, 'box-')]"
-            ]
-            
-            for selector in iframe_selectors:
-                iframes = self.driver.find_elements(By.XPATH, selector)
-                for iframe in iframes:
-                    if iframe.is_displayed():
-                        # Remove iframe overlay
-                        self.driver.execute_script("arguments[0].remove();", iframe)
-                        time.sleep(SLEEP_IFRAME_REMOVAL)
-        except Exception:
-            pass  # Error removing iframe overlays
-        
-        # Remove parent containers that might contain overlays
-        try:
-            container_selectors = [
-                "//div[contains(@class, 'overlay')]",
-                "//div[contains(@class, 'modal')]",
-                "//div[contains(@class, 'lightbox')]",
-                "//div[contains(@class, 'popup')]",
-                "//div[contains(@style, 'position: fixed')]",
-                "//div[contains(@style, 'position:fixed')]",
-                "//div[contains(@style, 'z-index') and contains(@style, '999')]"
-            ]
-            
-            for selector in container_selectors:
-                containers = self.driver.find_elements(By.XPATH, selector)
-                for container in containers:
-                    if container.is_displayed():
-                        # Check if this container is blocking the main content
-                        try:
-                            rect = container.rect
-                            if rect['width'] > 500 and rect['height'] > 300:  # Large overlay
-                                # Remove large overlay container
-                                self.driver.execute_script("arguments[0].remove();", container)
-                                time.sleep(SLEEP_IFRAME_REMOVAL)
-                        except Exception as e:
-                            logger.debug(f"Error removing element: {e}")
-                            continue
-        except Exception:
-            pass  # Error removing container overlays
-        
-        # Force remove any elements with high z-index that might be blocking
-        try:
-            self.driver.execute_script("""
-                var elements = document.querySelectorAll('*');
-                for (var i = 0; i < elements.length; i++) {
-                    var style = window.getComputedStyle(elements[i]);
-                    var zIndex = parseInt(style.zIndex);
-                    if (zIndex > 1000 && style.position === 'fixed') {
-                        elements[i].remove();
-                    }
-                }
-            """)
-            pass  # Removed high z-index elements
-        except Exception:
-            pass  # Error removing high z-index elements
-        
-        # Final cleanup - call the standard overlay removal
-        self.close_overlays_and_popups()
+        """Aggressively remove overlays via shared utils, then standard cleanup."""
+        sleeps = {
+            'SLEEP_IFRAME_REMOVAL': SLEEP_IFRAME_REMOVAL,
+            'SLEEP_OVERLAY_REMOVAL': SLEEP_OVERLAY_REMOVAL,
+        }
+        utils_remove_all_overlays_aggressively(self.driver, self.wait, logger, sleeps)
     
     def click_continue_button(self):
-        """Helper method to click continue/next buttons with multiple selectors."""
-        continue_selectors = [
-            "//button[contains(text(), 'Continue')]",
-            "//a[contains(text(), 'Continue')]",
-            "//button[contains(text(), 'Next')]",
-            "//a[contains(text(), 'Next')]",
-            "//input[@type='submit']",
-            "//button[@type='submit']",
-            "//button[contains(text(), 'Proceed')]",
-            "//button[contains(text(), 'Go')]"
-        ]
-        
-        for selector in continue_selectors:
-            try:
-                continue_btn = self.wait.until(EC.element_to_be_clickable((By.XPATH, selector)))
-                # Found Continue button
-                continue_btn.click()
-                time.sleep(SLEEP_CONTINUE_BUTTON)
-                return True
-            except TimeoutException:
-                continue
-        
-        # No Continue button found
-        return False
+        """Click continue/next buttons using shared utils."""
+        sleeps = {
+            'SLEEP_CONTINUE_BUTTON': SLEEP_CONTINUE_BUTTON,
+        }
+        return utils_click_continue_button(self.driver, self.wait, sleeps)
     
     def navigate_to_category_page(self):
         """Navigate directly to the category page using configured URL"""
