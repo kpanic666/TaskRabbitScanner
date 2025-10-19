@@ -53,3 +53,17 @@ CONTINUE_SELECTORS = [
     "//button[contains(text(), 'Proceed')]",
     "//button[contains(text(), 'Go')]",
 ]
+
+# Visible scan selectors for potential names and rates
+NAME_SELECTORS_VISIBLE_SCAN = [
+    ".//span[contains(@class, 'mui-5xjf89')]",
+    ".//button[contains(@class, 'TRTextButtonPrimary-Root') or contains(@class, 'mui-1pbxn54')]",
+    ".//button[contains(@class, 'MuiButton-textPrimary')]",
+]
+
+RATE_SELECTORS_VISIBLE_SCAN = [
+    "//div[contains(@class, 'mui-loubxv')]",
+    "//div[contains(@class, 'rate') and contains(text(), '$') and contains(text(), '/hr')]",
+    "//span[contains(text(), '$') and contains(text(), '/hr')]",
+    "//div[contains(text(), '$') and contains(text(), '/hr')]",
+]
