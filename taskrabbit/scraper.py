@@ -2,6 +2,7 @@ import time
 import re
 from typing import List, Dict
 from selenium.webdriver.common.by import By
+from .selectors import NAME_SELECTORS_CARD, RATE_SELECTORS_CARD
 
 # This module contains the scraping and pagination helpers extracted from TaskRabbitParser.
 # Each function accepts `ctx`, which is the TaskRabbitParser instance, so it can
@@ -102,14 +103,7 @@ def extract_taskers_from_current_page(ctx) -> List[Dict[str, str]]:
         try:
             # Extract name
             name = "Name not found"
-            name_selectors = [
-                ".//button[contains(@class, 'mui-1pbxn54')]",
-                ".//button[contains(@class, 'TRTextButtonPrimary-Root')]",
-                ".//span[contains(@class, 'mui-5xjf89')]",
-                ".//h3",
-                ".//*[text()[contains(., '.') and string-length(.) < 20]]",
-            ]
-            for selector in name_selectors:
+            for selector in NAME_SELECTORS_CARD:
                 try:
                     name_elements = card.find_elements(By.XPATH, selector)
                     for name_element in name_elements:
@@ -173,14 +167,7 @@ def extract_taskers_from_current_page(ctx) -> List[Dict[str, str]]:
 
             # Extract rate
             rate = "Rate not found"
-            rate_selectors = [
-                ".//div[contains(@class, 'mui-loubxv')]",
-                ".//*[contains(text(), '$') and contains(text(), '/hr')]",
-                ".//*[contains(text(), '$')]",
-                ".//div[contains(@class, 'rate')]",
-                ".//span[contains(text(), '$')]",
-            ]
-            for selector in rate_selectors:
+            for selector in RATE_SELECTORS_CARD:
                 try:
                     rate_elements = card.find_elements(By.XPATH, selector)
                     for rate_element in rate_elements:

@@ -67,3 +67,20 @@ RATE_SELECTORS_VISIBLE_SCAN = [
     "//span[contains(text(), '$') and contains(text(), '/hr')]",
     "//div[contains(text(), '$') and contains(text(), '/hr')]",
 ]
+
+# Per-card extraction selectors
+NAME_SELECTORS_CARD = [
+    ".//button[contains(@class, 'mui-1pbxn54')]",
+    ".//button[contains(@class, 'TRTextButtonPrimary-Root')]",
+    ".//span[contains(@class, 'mui-5xjf89')]",
+    ".//h3",
+    ".//*[text()[contains(., '.') and string-length(.) < 20]]",
+]
+
+RATE_SELECTORS_CARD = [
+    ".//div[contains(@class, 'mui-loubxv')]",
+    ".//*[contains(text(), '$') and contains(text(), '/hr')]",
+    ".//*[contains(text(), '$')]",
+    ".//div[contains(@class, 'rate')]",
+    ".//span[contains(text(), '$')]",
+]
