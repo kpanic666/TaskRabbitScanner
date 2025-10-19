@@ -15,6 +15,7 @@ import re
 import os
 from datetime import datetime
 from typing import List, Dict
+from taskrabbit.categories import CATEGORIES
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -44,110 +45,6 @@ SLEEP_TASK_DETAILS = 1             # After entering task details
 SLEEP_OPTIONS_COMPLETE = 3         # After completing all options
 SLEEP_PAGE_NAVIGATION = 3         # After navigating to new page
 SLEEP_CARD_LOADING = 5             # Waiting for tasker cards to load
-
-# Category configuration
-CATEGORIES = {
-    'furniture_assembly': {
-        'name': 'Furniture Assembly',
-        'url': 'https://www.taskrabbit.com/services/handyman/assemble-furniture',
-        'options': [
-            {'type': 'furniture_type', 'value': 'Both IKEA and non-IKEA furniture'},
-            {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
-            {'type': 'task_details', 'value': 'build stool'}
-        ]
-    },
-    'plumbing': {
-        'name': 'Plumbing',
-        'url': 'https://www.taskrabbit.com/services/handyman/plumbing',
-        'options': [
-            # Plumbing skips furniture type selection and goes directly to size and task details
-            {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
-            {'type': 'task_details', 'value': 'fix leaky faucet', 'final_button': 'See Taskers & Prices'}
-        ]
-    },
-    'electrical': {
-        'name': 'Electrical Help',
-        'url': 'https://www.taskrabbit.com/services/handyman/electrical-work',
-        'options': [
-            # Electrical follows same flow as plumbing - size and task details only
-            {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
-            {'type': 'task_details', 'value': 'install light fixture', 'final_button': 'See Taskers & Prices'}
-        ]
-    },
-    'door_repair': {
-        'name': 'Door, Cabinet & Furniture Repair',
-        'url': 'https://www.taskrabbit.com/services/handyman/door-and-cabinet-repair',
-        'options': [
-            # Door repair follows same flow as plumbing/electrical - size and task details only
-            {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
-            {'type': 'task_details', 'value': 'fix cabinet door', 'final_button': 'See Taskers & Prices'}
-        ]
-    },
-    'sealing_caulking': {
-        'name': 'Sealing and caulking',
-        'url': 'https://www.taskrabbit.com/services/handyman/sealing-caulking',
-        'options': [
-            # Sealing and caulking follows same flow as plumbing - size and task details only
-            {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
-            {'type': 'task_details', 'value': 'caulk bathroom tiles', 'final_button': 'See Taskers & Prices'}
-        ]
-    },
-    'appliance_installation': {
-        'name': 'Appliance Installation',
-        'url': 'https://www.taskrabbit.com/services/handyman/appliance-repairs',
-        'options': [
-            # Appliance installation follows same flow as plumbing - size and task details only
-            {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
-            {'type': 'task_details', 'value': 'install dishwasher', 'final_button': 'See Taskers & Prices'}
-        ]
-    },
-    'flooring_tiling': {
-        'name': 'Flooring & Tiling Help',
-        'url': 'https://www.taskrabbit.com/services/handyman/flooring-tiling-help',
-        'options': [
-            # Flooring & Tiling follows same flow as plumbing - size and task details only
-            {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
-            {'type': 'task_details', 'value': 'install tile flooring', 'final_button': 'See Taskers & Prices'}
-        ]
-    },
-    'wall_repair': {
-        'name': 'Wall Repair',
-        'url': 'https://www.taskrabbit.com/services/handyman/drywall-repair',
-        'options': [
-            # Wall repair follows same flow as plumbing - size and task details only
-            {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
-            {'type': 'task_details', 'value': 'patch drywall hole', 'final_button': 'See Taskers & Prices'}
-        ]
-    },
-    'window_blinds_repair': {
-        'name': 'Window & Blinds Repair',
-        'url': 'https://www.taskrabbit.com/services/handyman/window-repair',
-        'options': [
-            # Window & Blinds repair follows same flow as plumbing - size and task details only
-            {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
-            {'type': 'task_details', 'value': 'fix window blinds', 'final_button': 'See Taskers & Prices'}
-        ]
-    },
-    'smart_home': {
-        'name': 'Smart Home Installation',
-        'url': 'https://www.taskrabbit.com/services/handyman/smart-home-installation',
-        'options': [
-            # Smart Home Installation has additional Vehicle Requirements step
-            {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
-            {'type': 'vehicle_requirements', 'value': 'Not needed for task'},
-            {'type': 'task_details', 'value': 'install smart thermostat', 'final_button': 'See Taskers & Prices'}
-        ]
-    },
-    'interior_painting': {
-        'name': 'Interior Painting',
-        'url': 'https://www.taskrabbit.com/services/handyman/painting',
-        'options': [
-            # Interior Painting follows same flow as plumbing - size and task details only
-            {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
-            {'type': 'task_details', 'value': 'paint bedroom walls', 'final_button': 'See Taskers & Prices'}
-        ]
-    }
-}
 
 class TaskRabbitParser:
     def __init__(self, category: str = 'furniture_assembly', headless: bool = False, max_pages: int = None):
@@ -2108,103 +2005,7 @@ class TaskRabbitParser:
                 self.driver.quit()
                 logger.info("Browser closed")
 
-def run_parser_for_category(category: str, headless: bool = False, max_pages: int = None):
-    """Run the parser for a specific category."""
-    parser = TaskRabbitParser(category=category, headless=headless, max_pages=max_pages)
-    parser.run()
-    return parser.csv_filename
-
-def run_all_categories(headless: bool = False, max_pages: int = None):
-    """Run the parser for all configured categories."""
-    results = {}
-    for category in CATEGORIES.keys():
-        logger.info(f"\n{'='*50}")
-        logger.info(f"Starting extraction for {CATEGORIES[category]['name']}")
-        logger.info(f"{'='*50}")
-        try:
-            csv_file = run_parser_for_category(category, headless, max_pages)
-            results[category] = csv_file
-            logger.info(f"Completed {CATEGORIES[category]['name']} - saved to {csv_file}")
-        except Exception as e:
-            logger.error(f"Failed to extract {CATEGORIES[category]['name']}: {e}")
-            results[category] = None
-    
-    return results
-
-def interactive_category_selection():
-    """Interactive category selection when no command line arguments provided."""
-    print("TaskRabbit Multi-Category Parser")
-    print("\nAvailable categories:")
-    
-    # Display categories with numbers
-    category_list = list(CATEGORIES.keys())
-    for i, category_key in enumerate(category_list, 1):
-        category_name = CATEGORIES[category_key]['name']
-        print(f"{i}. {category_name} ({category_key})")
-    
-    print(f"{len(category_list) + 1}. All categories")
-    
-    while True:
-        try:
-            choice = input(f"\nSelect category (1-{len(category_list) + 1}) or 'q' to quit: ").strip()
-            
-            if choice.lower() == 'q':
-                print("Cancelled.")
-                return None
-            
-            choice_num = int(choice)
-            
-            if 1 <= choice_num <= len(category_list):
-                selected_category = category_list[choice_num - 1]
-                print(f"Selected: {CATEGORIES[selected_category]['name']}")
-                return selected_category
-            elif choice_num == len(category_list) + 1:
-                print("Selected: All categories")
-                return 'all'
-            else:
-                print(f"Invalid choice. Please enter 1-{len(category_list) + 1} or 'q'.")
-                
-        except ValueError:
-            print("Invalid input. Please enter a number or 'q'.")
-        except KeyboardInterrupt:
-            print("\nCancelled.")
-            return None
-
 if __name__ == "__main__":
-    import sys
-    
-    # Check if category is specified as command line argument
-    if len(sys.argv) > 1:
-        specified_category = sys.argv[1].lower()
-        if specified_category == 'all':
-            # Run all categories
-            results = run_all_categories(headless=False, max_pages=MAX_PAGES_FOR_TESTING)
-            print("\nExtraction Results:")
-            for cat, file in results.items():
-                status = "✓" if file else "✗"
-                print(f"{status} {CATEGORIES[cat]['name']}: {file or 'Failed'}")
-        elif specified_category in CATEGORIES:
-            category = specified_category
-            parser = TaskRabbitParser(category=category, headless=False, max_pages=MAX_PAGES_FOR_TESTING)
-            parser.run()
-        else:
-            print(f"Unknown category: {specified_category}")
-            print(f"Available categories: {', '.join(CATEGORIES.keys())}, all")
-            sys.exit(1)
-    else:
-        # Interactive category selection
-        selected_category = interactive_category_selection()
-        
-        if selected_category is None:
-            sys.exit(0)
-        elif selected_category == 'all':
-            # Run all categories
-            results = run_all_categories(headless=False, max_pages=MAX_PAGES_FOR_TESTING)
-            print("\nExtraction Results:")
-            for cat, file in results.items():
-                status = "✓" if file else "✗"
-                print(f"{status} {CATEGORIES[cat]['name']}: {file or 'Failed'}")
-        else:
-            # Run selected category
-            parser = TaskRabbitParser(category=selected_category, headless=False, max_pages=MAX_PAGES_FOR_TESTING)
-            parser.run()
+    # Delegate to modular CLI for backward compatibility
+    from taskrabbit.cli import main as cli_main
+    raise SystemExit(cli_main(max_pages=MAX_PAGES_FOR_TESTING, headless=False))
