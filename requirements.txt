@@ -1,2 +1,4 @@
 selenium==4.15.2
 webdriver-manager==4.0.1
+matplotlib==3.8.0
+numpy==1.26.0
