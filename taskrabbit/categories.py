@@ -56,22 +56,6 @@ CATEGORIES = {
             {'type': 'task_details', 'value': 'install tile flooring', 'final_button': 'See Taskers & Prices'}
         ]
     },
-    'wall_repair': {
-        'name': 'Wall Repair',
-        'url': 'https://www.taskrabbit.com/services/handyman/drywall-repair',
-        'options': [
-            {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
-            {'type': 'task_details', 'value': 'patch drywall hole', 'final_button': 'See Taskers & Prices'}
-        ]
-    },
-    'window_blinds_repair': {
-        'name': 'Window & Blinds Repair',
-        'url': 'https://www.taskrabbit.com/services/handyman/window-repair',
-        'options': [
-            {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
-            {'type': 'task_details', 'value': 'fix window blinds', 'final_button': 'See Taskers & Prices'}
-        ]
-    },
     'smart_home': {
         'name': 'Smart Home Installation',
         'url': 'https://www.taskrabbit.com/services/handyman/smart-home-installation',
@@ -81,12 +65,25 @@ CATEGORIES = {
             {'type': 'task_details', 'value': 'install smart thermostat', 'final_button': 'See Taskers & Prices'}
         ]
     },
-    'interior_painting': {
-        'name': 'Interior Painting',
-        'url': 'https://www.taskrabbit.com/services/handyman/painting',
+    'tv_mounting': {
+        'name': 'TV Mounting',
+        'url': 'https://www.taskrabbit.com/services/featured/wall-mount-tv',
         'options': [
-            {'type': 'size', 'value': 'Medium - Est. 2-3 hrs'},
-            {'type': 'task_details', 'value': 'paint bedroom walls', 'final_button': 'See Taskers & Prices'}
+            {'type': 'tv_count', 'value': '1'},
+            {'type': 'someone_around', 'value': 'Yes'},
+            {'type': 'fixed_profile', 'value': 'Fixed / low profile'},
+            {'type': 'tv_type', 'value': 'LED/LCD/OLED'},
+            {'type': 'task_details', 'value': '', 'final_button': 'Submit answer'}
+        ]
+    },
+    'general_mounting': {
+        'name': 'General Mounting',
+        'url': 'https://www.taskrabbit.com/services/handyman/mounting-all',
+        'options': [
+            {'type': 'other_mounting', 'value': 'Other Mounting'},
+            {'type': 'task_details', 'value': '2 shelves', 'final_button': 'Submit answer'},
+            {'type': 'hours_needed', 'value': '2'},
+            {'type': 'ladder_needed', 'value': 'No'}
         ]
     }
 }

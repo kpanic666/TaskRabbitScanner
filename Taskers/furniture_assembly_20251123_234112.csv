@@ -1,0 +1,350 @@
+name,hourly_rate,review_rating,review_count,furniture_tasks,overall_tasks,two_hour_minimum,elite_status
+TIMUR M.,$75.36,5.0,1298,2765,2759,True,False
+Iurii A.,$69.17,5.0,1126,2321,None,True,False
+AIUR B.,$56.78,5.0,1056,1902,1899,True,False
+Maksim K.,$30.97,5.0,259,405,436,True,False
+Fikret M.,$36.13,5.0,119,168,None,False,False
+Evgenii U.,$30.97,5.0,83,186,182,True,False
+Anatolii G.,$51.62,5.0,590,1131,1110,True,False
+Murat A.,$46.45,5.0,82,180,169,False,False
+Jay H.,$70.20,5.0,878,1591,1655,False,False
+Roman O.,$36.13,5.0,29,62,60,False,False
+Bator B.,$30.97,5.0,58,124,123,False,False
+Malcolm B.,$33.03,5.0,35,52,26,False,False
+Amirkhan A.,$42.32,5.0,95,145,120,False,False
+Nick P.,$61.94,5.0,1613,2789,2792,True,False
+Sergei G.,$67.10,5.0,927,1969,1958,False,False
+Yevhen H.,$51.62,5.0,183,299,293,True,False
+Aleksei A.,$48.52,5.0,610,1101,1106,True,False
+Bulat B.,$30.97,5.0,12,28,22,False,False
+Vasilii S.,$65.04,5.0,1071,2139,2198,True,False
+Chingis A.,$51.62,5.0,511,749,959,True,False
+Tsyren S.,$36.13,5.0,496,520,967,True,False
+Sorbon Q.,$41.29,5.0,55,101,100,True,False
+Abrorjon A.,$30.97,4.9,28,42,None,True,False
+Denys B.,$46.45,5.0,202,342,412,False,False
+Aleksandr K.,$59.88,5.0,463,1030,1031,True,False
+Andrei K.,$47.49,5.0,38,60,20,False,False
+Anton F.,$45.42,4.9,282,674,664,True,False
+Isfandiyor M.,$48.52,5.0,301,630,604,False,True
+MYKHAYLO M.,$64,5.0,422,1024,1011,True,False
+Joshua B.,$39.23,5.0,33,75,None,False,False
+Alikhan D.,$41.29,4.9,37,74,123,True,False
+Gints J.,$58.84,5.0,460,595,802,False,False
+Alex M.,$35.10,4.8,25,50,17,False,False
+Aleks S.,$49.55,5.0,50,80,None,False,False
+Ivan P.,$41.29,5.0,110,199,192,False,False
+Andrew A.,$66.07,5.0,710,1329,1272,True,False
+Ilia B.,$36.13,5.0,25,29,31,True,False
+Diana S.,$41.29,5.0,257,405,399,True,False
+Nicholas F.,$59.88,4.9,376,661,598,False,True
+Edward F.,$59.88,5.0,514,130,987,False,True
+Youssof S.,$36.13,4.5,8,18,17,False,False
+Lev S.,$59.88,5.0,73,124,120,True,False
+Daniel V.,$46.45,5.0,51,59,92,True,False
+Cristian R.,$55.75,4.8,52,78,107,False,False
+Enkhe T.,$49.55,4.8,21,26,32,False,False
+Georgii G.,$34.06,4.9,22,36,37,False,False
+Kodi F.,$33.03,5.0,7,16,None,False,False
+Stanislav A.,$49.55,5.0,21,56,58,True,False
+Mustafa A.,$30.97,Not found,Not found,Not found,None,False,False
+Abraham P.,$41.29,5.0,5,5,4,False,False
+Seth M.,$53.68,5.0,69,85,102,True,False
+Gregory M.,$39.23,4.9,234,312,387,False,False
+Orzu K.,$39.23,5.0,31,46,None,False,False
+Dan A.,$54.71,4.9,201,352,329,False,False
+MEIR M.,$33.03,5.0,5,11,8,False,False
+William S.,$59.88,5.0,34,56,62,False,False
+Alexy O.,$61.94,4.9,326,579,575,False,False
+Allison  T.,$47.49,4.9,48,93,72,False,False
+Abdullah A.,$46.45,5.0,8,10,7,False,False
+Victor S.,$57.81,4.9,138,128,265,False,False
+Virgil S.,$57.81,5.0,68,104,None,False,False
+Roin B.,$51.62,4.9,240,81,533,True,False
+Brian A.,$46.45,4.6,24,44,40,False,False
+Danil K.,$30.97,Not found,Not found,Not found,None,False,False
+Negin K.,$51.62,5.0,24,30,29,True,False
+Eduard V.,$51.62,Not found,Not found,Not found,None,True,False
+Nosir K.,$30.97,Not found,Not found,Not found,None,False,False
+Gabriel C.,$32,Not found,Not found,Not found,None,True,False
+Denis P.,$67.10,4.9,9,18,21,False,False
+Roni K.,$87.75,5.0,4,4,None,False,False
+Oleg G.,$46.45,5.0,100,72,123,False,False
+Yelfry S.,$41.29,5.0,5,6,None,False,False
+Irakli K.,$36.13,5.0,2,4,None,False,False
+SAFAR S.,$41.29,Not found,Not found,Not found,None,False,False
+Aleksei E.,$48.52,5.0,138,19,277,False,False
+Mohamed D.,$51.62,4.6,11,14,None,False,False
+Kirill K.,$61.94,5.0,20,31,None,False,False
+Angel R.,$39.23,5.0,7,3,4,False,False
+Mykola  B.,$40.26,5.0,4,4,3,False,False
+Michael H.,$41.29,5.0,4,11,None,False,False
+Shaikh A.,$51.62,Not found,Not found,Not found,None,False,False
+Ahmed G.,$33.03,Not found,Not found,Not found,None,False,False
+Gavin L.,$30.97,Not found,Not found,Not found,None,False,False
+Ruben P.,$54.71,Not found,Not found,Not found,None,False,False
+Ammar T.,$49.55,4.8,118,184,179,True,False
+Michael P.,$38.19,5.0,2,2,3,False,False
+Serghei M.,$56.78,Not found,Not found,Not found,None,False,False
+Yaroslav U.,$36.13,Not found,Not found,Not found,None,False,False
+Ilia K.,$51.62,5.0,1,Not found,None,False,False
+Aleksandr T.,$103.24,5.0,1,2,None,False,False
+Aslan I.,$51.62,Not found,Not found,Not found,None,False,False
+Mykyta B.,$51.62,Not found,Not found,Not found,None,False,False
+Alex D.,$51.62,5.0,1,2,None,False,False
+Kola G.,$82.59,Not found,Not found,Not found,None,False,False
+Serhii B.,$30.97,5.0,300,561,550,False,False
+Yurii K.,$30.97,5.0,674,1176,1237,True,True
+Pavel K.,$30.97,5.0,60,127,112,False,False
+TYMUR L.,$30.97,5.0,164,362,372,True,False
+Walker F.,$30.97,5.0,731,1231,1121,False,False
+Art D.,$30.97,5.0,95,177,174,False,False
+Andrii P.,$30.97,5.0,387,739,720,True,False
+VLADISLAV D.,$30.97,5.0,597,1066,1033,True,False
+Bayarto D.,$30.97,5.0,261,282,568,True,False
+Chance D.,$61.94,4.9,1264,2166,2044,True,True
+Vladyslav K.,$30.97,5.0,72,154,163,True,False
+Denys K.,$30.97,5.0,45,88,87,False,False
+Andrii B.,$30.97,5.0,31,45,42,False,False
+Oleksiy R.,$41.29,5.0,142,281,265,False,True
+ALEKSANDR I.,$70.20,5.0,1229,2448,2430,True,False
+Nikita I.,$51.62,5.0,766,1472,1455,False,False
+Ali S.,$46.45,5.0,535,968,1125,False,False
+Chingis Z.,$92.91,5.0,231,348,363,False,True
+Oleg K.,$41.29,5.0,393,458,523,False,False
+Igor N.,$41.29,5.0,168,247,337,False,True
+Ruslan M.,$69.17,4.9,408,535,827,True,True
+Emmanuel P.,$33.03,4.8,22,40,37,False,False
+Sergei B.,$77.43,5.0,409,625,622,False,True
+Lionel L.,$70.20,5.0,992,1580,1575,False,True
+Yaro R.,$55.75,5.0,86,106,132,False,True
+Venera D.,$30.97,5.0,67,123,109,False,False
+Aleksandr Z.,$53.68,5.0,97,184,182,False,True
+Marcelo B.,$39.23,5.0,77,105,89,True,False
+Juan T.,$67.10,5.0,858,1516,1467,False,True
+Fred E.,$51.62,5.0,964,1688,1544,True,False
+Erdni M.,$30.97,5.0,159,114,445,False,False
+Andrey R.,$55.75,5.0,80,128,162,False,True
+Patrick H.,$51.62,5.0,1360,2081,2188,True,False
+Eugene B.,$47.49,5.0,73,104,None,False,True
+Andrew M.,$51.62,5.0,46,91,None,False,True
+Dmitrii A.,$56.78,5.0,244,415,425,False,False
+Dane H.,$48.52,4.9,240,350,520,True,False
+ILYA I.,$65.04,5.0,1063,1988,1963,True,False
+Adam U.,$39.23,4.9,68,206,207,True,False
+Matthew M.,$64,5.0,660,1151,1157,False,False
+Aleksandr L.,$51.62,5.0,60,102,103,False,False
+Robert H.,$51.62,5.0,743,1528,1566,True,False
+IURII S.,$62.97,5.0,272,270,410,False,True
+Shaq P.,$41.29,4.9,231,446,440,False,True
+Bair B.,$78.46,5.0,265,358,378,True,True
+Sergei G.,$41.29,5.0,105,151,200,False,False
+Bulat T.,$61.94,5.0,342,620,609,False,True
+Aleksandr B.,$41.29,5.0,118,75,345,False,True
+Aleksandr T.,$57.81,4.9,279,451,469,True,False
+Alex V.,$38.19,5.0,86,96,168,False,False
+Mohamed Aziz L.,$108.40,5.0,225,331,329,True,True
+Peter B.,$67.10,5.0,276,469,532,False,True
+Matthew K.,$51.62,5.0,592,989,995,True,False
+Denis K.,$51.62,5.0,387,703,714,False,False
+Enrry P.,$40.26,4.9,342,193,686,False,True
+Jose C.,$30.97,4.4,13,21,27,False,False
+Zain H.,$62.97,4.9,462,606,856,False,False
+Aleksandr Z.,$30.97,5.0,17,22,20,False,False
+Sergei P.,$35.10,5.0,156,168,264,False,False
+Achel M.,$61.94,5.0,323,429,703,True,False
+Denys C.,$58.84,5.0,233,258,566,False,False
+Timur Y.,$69.17,5.0,509,622,1020,False,False
+Bulat N.,$66.07,5.0,398,757,762,True,False
+Rory T.,$69.17,5.0,354,542,536,False,False
+Pavel K.,$98.07,5.0,492,807,882,True,True
+Ruslan I.,$43.36,4.9,80,162,158,True,False
+Rinat R.,$59.88,5.0,479,893,937,False,False
+Raymond R.,$41.29,5.0,253,387,382,False,False
+Volodymyr B.,$62.97,5.0,146,293,None,False,True
+Joe T.,$61.94,5.0,195,344,379,False,False
+Ivan L.,$61.94,5.0,256,221,477,False,False
+Andrew L.,$61.94,4.9,216,409,412,False,True
+Dolgan B.,$51.62,4.8,40,57,85,False,True
+Denzil M.,$30.97,4.3,48,121,114,False,True
+Oleksandr B.,$40.26,5.0,68,132,86,False,False
+Adam I.,$67.10,5.0,791,1234,1421,True,False
+Aldar T.,$36.13,4.8,6,14,12,True,False
+MERGEN A.,$51.62,5.0,44,71,86,False,False
+adam M.,$64,5.0,802,1206,1193,True,False
+Pierre R.,$41.29,4.9,962,1249,1574,True,False
+Marcelo W.,$36.13,5.0,35,62,None,False,False
+Paul K.,$57.81,5.0,91,86,147,False,True
+Christopher P.,$30.97,5.0,57,74,80,False,False
+Marc S.,$58.84,4.9,129,281,288,False,False
+Andrei A.,$40.26,5.0,64,39,68,True,False
+Aktan C.,$51.62,5.0,110,162,218,True,False
+Denis N.,$56.78,4.9,274,138,720,False,False
+Ilez E.,$40.26,5.0,21,37,52,False,False
+Aleksandr D.,$56.78,5.0,226,168,470,False,False
+John A.,$92.91,5.0,1064,1684,1588,True,False
+David M.,$61.94,4.9,419,752,793,False,False
+Daron E.,$59.88,5.0,310,483,482,False,False
+Raman K.,$58.84,4.9,184,269,275,False,False
+Shaun A.,$46.45,5.0,60,125,126,False,True
+Almazbek K.,$72.26,5.0,1451,2535,2429,True,False
+Mykola M.,$60.91,5.0,253,396,439,False,True
+Aleksandr D.,$61.94,4.9,385,533,705,False,False
+Alexander L.,$59.88,5.0,145,138,225,False,False
+Vitalii I.,$66.07,5.0,57,89,99,False,True
+Michael C.,$67.10,4.9,137,116,284,False,True
+Sergei K.,$51.62,5.0,160,262,290,True,False
+Alex S.,$56.78,5.0,289,228,548,False,False
+Matthew N.,$64,5.0,292,504,487,False,True
+Roman S.,$56.78,4.9,105,122,258,True,False
+Elias M.,$45.42,5.0,15,39,25,False,False
+Denys K.,$65.04,5.0,139,221,220,False,True
+Viacheslav M.,$35.10,5.0,3,12,None,False,False
+Nozimbek B.,$56.78,4.9,175,80,390,False,True
+Bob N.,$36.13,5.0,2,7,None,False,False
+Alikhan B.,$59.88,5.0,1135,158,1847,False,True
+Mayra P.,$72.26,4.9,360,329,605,True,False
+Malik J.,$39.23,5.0,18,38,34,False,False
+Julia B.,$61.94,5.0,342,360,539,False,False
+Oleg P.,$39.23,5.0,8,12,14,True,False
+Valerii P.,$56.78,5.0,48,89,92,True,False
+Olga T.,$30.97,5.0,1,3,None,False,False
+Valerii A.,$51.62,4.9,77,62,218,False,False
+Roman M.,$58.84,5.0,42,53,83,False,False
+Balzhinima A.,$72.26,5.0,46,79,94,False,True
+Ivan M.,$44.39,5.0,12,19,None,False,False
+Evgeniy B.,$47.49,5.0,9,20,None,False,False
+Li W.,$56.78,4.9,142,98,305,False,False
+Emil K.,$59.88,5.0,188,119,382,False,False
+Aleksandr I.,$49.55,5.0,47,55,69,True,False
+Mario P.,$33.03,Not found,Not found,3,None,False,False
+Aziz N.,$67.10,5.0,237,466,None,False,False
+Muhsin K.,$46.45,5.0,9,17,16,False,False
+Derrick A.,$61.94,4.9,268,279,510,False,True
+Devine L.,$61.94,4.9,93,159,187,False,False
+Mohamed A.,$36.13,5.0,4,6,None,False,False
+Viktor F.,$46.45,5.0,222,52,486,False,True
+Daniil Z.,$72.26,5.0,568,307,1296,False,False
+Pedro M.,$53.68,4.8,229,104,497,False,True
+Orkhan G.,$56.78,5.0,102,191,185,False,False
+Oleksandr L.,$41.29,4.9,19,41,39,False,False
+Viktor L.,$35.10,5.0,6,12,None,False,False
+Luke H.,$51.62,4.9,225,298,500,False,False
+Ilgam M.,$67.10,5.0,269,64,503,False,False
+Dmitrii S.,$61.94,5.0,238,405,387,True,False
+Luis R.,$51.62,5.0,29,67,None,False,False
+Dmytro T.,$54.71,5.0,32,45,46,False,False
+Barrington F.,$56.78,4.9,239,83,451,False,False
+Kadeem J.,$52.65,4.7,51,47,91,False,False
+Brandon M.,$53.68,4.7,110,104,None,True,False
+Viktor N.,$41.29,5.0,51,18,164,False,False
+Alireza P.,$72.26,5.0,237,351,432,False,False
+Christopher B.,$30.97,4.8,18,28,27,False,False
+Sergei G.,$61.94,5.0,26,47,None,False,False
+Vladimir S.,$51.62,5.0,32,56,None,False,False
+Joe L.,$66.07,4.8,125,284,297,False,False
+Nikolay N.,$67.10,5.0,31,41,60,True,True
+Spa T.,$72.26,5.0,16,30,None,True,False
+Anatolii G.,$49.55,5.0,56,23,167,True,False
+Antonio A.,$61.94,4.9,42,85,82,True,False
+Morgan H.,$54.71,5.0,119,185,187,False,False
+Orzujon T.,$41.29,5.0,7,9,8,False,False
+Angel O.,$51.62,5.0,21,28,29,True,False
+Eduard S.,$47.49,5.0,9,13,14,True,False
+Yuriy K.,$67.10,4.9,86,130,128,True,False
+Anton A.,$42.32,5.0,2,6,None,False,False
+Shamil D.,$52.65,5.0,100,39,323,False,False
+Aleksandr B.,$41.29,5.0,6,15,16,False,False
+Roman A.,$42.32,5.0,4,12,None,False,False
+Meed S.,$51.62,Not found,Not found,Not found,None,False,True
+Kimani S.,$67.10,4.9,284,514,510,False,False
+Konstantin S.,$67.10,5.0,405,535,532,False,False
+Jose M.,$50.58,5.0,91,31,125,False,False
+Denis D.,$46.45,5.0,8,16,None,False,False
+Evgenii B.,$45.42,5.0,8,13,None,False,False
+Jack L.,$44.39,5.0,5,9,None,False,False
+Sobir S.,$46.45,5.0,18,13,25,False,False
+Nurgun T.,$30.97,5.0,1,3,None,False,False
+Theodore F.,$46.45,5.0,14,26,None,False,False
+Volodymyr K.,$61.94,5.0,6,10,None,False,False
+Andrei S.,$68.13,5.0,21,35,37,True,False
+Joe P.,$52.65,4.9,25,50,53,True,True
+Evgenii M.,$72.26,5.0,15,24,None,False,False
+Elvek S.,$51.62,4.9,130,28,480,True,False
+Ajay T.,$55.75,5.0,364,163,647,False,False
+Giorgi M.,$51.62,4.9,24,33,72,False,False
+Roman B.,$51.62,5.0,9,27,28,True,False
+Alex B.,$67.10,5.0,22,38,37,True,False
+Dmitrii B.,$51.62,5.0,51,94,None,False,False
+Hafedh K.,$61.94,5.0,12,22,None,True,False
+Jonah P.,$47.49,4.6,27,47,46,False,False
+Vasya H.,$49.55,5.0,28,35,89,False,False
+Erdenibelik B.,$49.55,4.9,11,18,21,True,False
+Kenardo W.,$61.94,4.9,15,25,19,False,False
+Anton G.,$51.62,5.0,223,34,736,True,False
+Johniffer F.,$37.16,Not found,Not found,Not found,None,False,False
+Oleksandr V.,$41.29,5.0,2,7,6,True,False
+Raksha B.,$50.58,5.0,10,26,28,False,False
+BAIRO T.,$72.26,4.7,20,26,43,True,False
+Pavel N.,$55.75,5.0,8,15,None,True,False
+Yuri Z.,$77.43,5.0,65,48,90,False,False
+Roman M.,$51.62,4.9,45,41,105,False,False
+Almaz A.,$72.26,5.0,15,13,59,False,False
+Stylianos K.,$82.59,4.9,33,44,53,False,False
+Ildar K.,$60.91,5.0,199,165,343,False,False
+Erdem K.,$82.59,5.0,13,26,30,True,False
+Roman C.,$39.23,5.0,4,5,7,False,False
+Juan E.,$87.75,5.0,18,33,29,False,False
+Terrel A.,$123.89,5.0,46,66,91,False,False
+Nikolas S.,$61.94,5.0,56,81,74,False,False
+Viktor T.,$41.29,5.0,2,5,None,True,False
+Yaro A.,$51.62,5.0,3,11,12,True,False
+Tulkinjon I.,$46.45,5.0,10,18,None,False,False
+Grygorii K.,$64,4.9,38,14,70,False,False
+Maxim A.,$64,5.0,14,29,26,False,False
+Daniiar A.,$72.26,5.0,12,18,None,False,False
+Julio A.,$56.78,5.0,55,63,105,True,False
+Oleksandr P.,$46.45,5.0,9,14,16,False,False
+Alfred B.,$51.62,4.9,254,32,365,False,False
+Yerlan T.,$41.29,5.0,4,5,6,False,False
+Aleksei B.,$41.29,5.0,1,5,4,False,False
+Ryskeldi Z.,$30.97,5.0,1,Not found,None,False,False
+Junior M.,$52.65,5.0,141,42,256,False,False
+Alisher K.,$103.24,5.0,12,16,20,False,False
+Aiur G.,$41.29,5.0,4,4,9,False,False
+Dmitrii K.,$43.36,5.0,122,7,375,False,False
+Ivan I.,$81.56,5.0,17,28,None,True,False
+Dmitrii S.,$103.24,5.0,8,13,None,False,False
+Amgalan B.,$34.06,5.0,1,Not found,None,True,False
+Daniel F.,$53.68,5.0,6,7,None,False,False
+Vadim L.,$72.26,5.0,14,28,30,False,False
+Roman I.,$74.33,5.0,22,26,27,True,False
+Geser Klara D.,$30.97,Not found,Not found,Not found,None,False,False
+Andrei K.,$30.97,Not found,Not found,Not found,None,False,False
+Sergey M.,$45.42,5.0,45,6,147,False,False
+Alexandro L.,$30.97,Not found,Not found,Not found,None,False,False
+Jose M.,$61.94,4.9,14,14,53,False,False
+Vladimir I.,$98.07,5.0,10,14,None,True,False
+Marat B.,$86.72,5.0,8,10,None,False,False
+Osita E.,$41.29,Not found,Not found,Not found,None,True,False
+Aleksandr A.,$36.13,5.0,2,2,None,False,False
+Viacheslav K.,$34.06,Not found,Not found,Not found,None,True,False
+Christopher R.,$48.52,5.0,3,4,None,True,False
+George M.,$82.59,5.0,7,3,14,False,False
+Oleksandr K.,$69.17,5.0,3,4,5,False,False
+Kirill B.,$77.43,5.0,3,4,None,False,False
+Aiur Z.,$77.43,5.0,3,6,None,True,False
+Yaroslav U.,$51.62,Not found,Not found,Not found,None,True,False
+Ruslan M.,$51.62,Not found,Not found,Not found,None,True,False
+Az O.,$103.24,4.9,19,29,None,False,False
+Zhan K.,$77.43,Not found,Not found,Not found,None,True,False
+Max I.,$82.59,5.0,1,5,None,False,False
+Oleg P.,$50.58,Not found,Not found,Not found,None,False,False
+Zam K.,$44.39,Not found,Not found,Not found,None,False,False
+Naziah A.,$41.29,Not found,Not found,Not found,None,False,False
+Bilikto B.,$51.62,5.0,1,Not found,None,False,False
+Amri R.,$129.05,Not found,Not found,2,None,True,False
+Ray B.,$64,Not found,Not found,Not found,None,False,False
+Ato T.,$30.97,Not found,Not found,Not found,None,False,False
+Ray H.,$61.94,5.0,2,2,None,True,False
+Terrence G.,$129.05,5.0,4,13,None,False,False

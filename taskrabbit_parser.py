@@ -34,7 +34,17 @@ logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s -
 logger = logging.getLogger(__name__)
 
 # Configuration constants - modify these to adjust behavior
-MAX_PAGES_FOR_TESTING = None     # Set to None to scan all pages, or number to limit pages
+MAX_PAGES_FOR_TESTING = 1     # Set to None to scan all pages, or number to limit pages
+DEFAULT_ADDRESS = "448 W 46th St, new york, 10036, NY"
+
+# Address dictionary for location selection
+ADDRESSES = {
+    "Manhattan - Upper West Side": "163 W 73rd St, New York, NY 10023",
+    "Manhattan - Upper East Side": "178 E 75th St, New York, NY 10021",
+    "Manhattan - Soho": "387 W Broadway, New York, NY 10012",
+    "Brooklyn - Downtown": "19 Monroe Pl, Brooklyn, NY 11201",
+    "Queens": "137-08 70th Ave, Flushing, NY 11367"
+}
 
 # Sleep duration constants (in seconds) - modify these to adjust timing
 SLEEP_OVERLAY_REMOVAL = 0.5          # After removing overlays/popups
@@ -49,16 +59,18 @@ SLEEP_SIZE_OPTION = 1              # After selecting size options
 SLEEP_TASK_DETAILS = 1             # After entering task details
 SLEEP_OPTIONS_COMPLETE = 3         # After completing all options
 SLEEP_PAGE_NAVIGATION = 3         # After navigating to new page
-SLEEP_CARD_LOADING = 5             # Waiting for tasker cards to load
+SLEEP_CARD_LOADING = 7            # Waiting for tasker cards to load
 
 class TaskRabbitParser:
-    def __init__(self, category: str = 'furniture_assembly', headless: bool = False, max_pages: int = None):
+    def __init__(self, category: str = 'furniture_assembly', headless: bool = False, max_pages: int = None, address: str = DEFAULT_ADDRESS, address_name: str = None):
         """Initialize the TaskRabbit parser with Chrome WebDriver."""
         self.base_url = "https://www.taskrabbit.com"
         self.driver = None
         self.wait = None
         self.headless = headless
         self.max_pages = max_pages  # Limit number of pages to process (None = all pages)
+        self.address = address
+        self.address_name = address_name
         
         # Category configuration
         if category not in CATEGORIES:
@@ -68,10 +80,40 @@ class TaskRabbitParser:
         self.category_config = CATEGORIES[category]
         self.category_name = self.category_config['name']
         
-        # Generate CSV filename with category and timestamp
+        # Extract address index (use address_name if provided, otherwise extract zip code)
+        address_index = self._extract_address_index(address, address_name)
+        
+        # Generate CSV filename with category, timestamp, and address index
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         category_filename = self.category_name.replace(' ', '_').lower()
-        self.csv_filename = f"Taskers/{category_filename}_{timestamp}.csv"
+        self.csv_filename = f"Taskers/{category_filename}_{timestamp}_{address_index}.csv"
+    
+    def _extract_address_index(self, address: str, address_name: str = None) -> str:
+        """Extract the address index from address_name if provided, otherwise extract zip code."""
+        if address_name:
+            # Create a short name from the address_name for the filename
+            # Format: keep borough, use initials for second part
+            if ' - ' in address_name:
+                parts = address_name.split(' - ', 1)
+                borough = parts[0].lower().replace(' ', '_')
+                location = parts[1]
+                # Extract initials from location words
+                words = location.split()
+                initials = ''.join(word[0].lower() for word in words)
+                short_name = f"{borough}_{initials}"
+            else:
+                # No separator, just use the name as-is
+                short_name = address_name.lower().replace(' ', '_')
+            return short_name
+        else:
+            # Fallback to zip code extraction
+            import re
+            # Look for a 5-digit zip code pattern
+            zip_match = re.search(r'\b(\d{5})\b', address)
+            if zip_match:
+                return zip_match.group(1)
+            # Fallback: if no zip code found, use a hash of the address
+            return str(hash(address))[:8]
         
     def setup_driver(self):
         """Setup Chrome WebDriver with appropriate options."""
@@ -216,24 +258,37 @@ class TaskRabbitParser:
         
         # Enter street address
         address_selectors = [
+            "//input[@data-testid='input-text-location-street-address']",
+            "//input[@id='location']",
+            "//input[@name='location']",
+            "//input[@role='combobox']",
             "//input[@placeholder='Street address']",
             "//input[@name='address']",
             "//input[contains(@id, 'address')]",
+            "//label[contains(text(), 'Street address')]/following::input[@type='text'][1]",
+            "//label[contains(text(), 'Street address')]/following-sibling::input",
+            "//input[@type='text'][1]",
             "//input[@type='text']",
             "//input[contains(@placeholder, 'address')]",
             "//input[contains(@class, 'address')]",
             "//input[contains(@placeholder, 'zip')]",
-            "//input[contains(@placeholder, 'location')]",
-            "//input[contains(@name, 'location')]",
             "//textarea[contains(@placeholder, 'address')]"
         ]
         
         address_field = None
         for selector in address_selectors:
             try:
-                address_field = self.wait.until(EC.presence_of_element_located((By.XPATH, selector)))
-                logger.info(f"Found address field with selector: {selector}")
-                break
+                if selector == "//input[@type='text'][1]":
+                    # For TV mounting, get all text inputs and select the first one
+                    elements = self.driver.find_elements(By.XPATH, "//input[@type='text']")
+                    if elements:
+                        address_field = elements[0]
+                        logger.info("Found first text input field")
+                        break
+                else:
+                    address_field = self.wait.until(EC.presence_of_element_located((By.XPATH, selector)))
+                    logger.info(f"Found address field with selector: {selector}")
+                    break
             except TimeoutException:
                 continue
         
@@ -243,22 +298,27 @@ class TaskRabbitParser:
             raise Exception("Address field not found")
         
         address_field.clear()
-        address_field.send_keys("6619 10th Ave, brooklyn, 11219, NY")
+        address_field.send_keys(self.address)
         time.sleep(SLEEP_ADDRESS_INPUT)
         
-        # Click Continue button
+        # Click Continue button (or "Set location" for TV mounting)
         continue_selectors = [
+            "//button[contains(text(), 'Set location')]",
+            "//button[contains(text(), 'Set Location')]",
             "//button[contains(text(), 'Continue')]",
             "//a[contains(text(), 'Continue')]",
             "//button[contains(text(), 'Next')]",
             "//input[@type='submit']",
-            "//button[@type='submit']"
+            "//button[@type='submit']",
+            "//button[contains(@class, 'submit')]",
+            "//button[contains(@class, 'continue')]"
         ]
         
         continue_btn = None
         for selector in continue_selectors:
             try:
-                continue_btn = self.wait.until(EC.element_to_be_clickable((By.XPATH, selector)))
+                # Try with a shorter timeout for TV mounting
+                continue_btn = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, selector)))
                 logger.info(f"Found Continue button with selector: {selector}")
                 break
             except TimeoutException:
@@ -267,6 +327,14 @@ class TaskRabbitParser:
         if not continue_btn:
             logger.error("Could not find Continue button")
             self.debug_page_elements("Continue button not found")
+            # Try to find any button as a last resort
+            try:
+                all_buttons = self.driver.find_elements(By.TAG_NAME, "button")
+                logger.info(f"Found {len(all_buttons)} buttons on page")
+                for i, btn in enumerate(all_buttons[:5]):
+                    logger.info(f"  Button {i}: text='{btn.text}', type='{btn.get_attribute('type')}'")
+            except Exception as e:
+                logger.info(f"Could not list buttons: {e}")
             raise Exception("Continue button not found")
         
         continue_btn.click()
@@ -296,6 +364,20 @@ class TaskRabbitParser:
                 self._select_plumbing_type_option(option_value)
             elif option_type == 'vehicle_requirements':
                 self._select_vehicle_requirements_option(option_value)
+            elif option_type == 'tv_count':
+                self._select_tv_count_option(option_value)
+            elif option_type == 'someone_around':
+                self._select_someone_around_option(option_value)
+            elif option_type == 'tv_type':
+                self._select_tv_type_option(option_value)
+            elif option_type == 'fixed_profile':
+                self._select_fixed_profile_option(option_value)
+            elif option_type == 'other_mounting':
+                self._select_other_mounting_option(option_value)
+            elif option_type == 'hours_needed':
+                self._select_hours_needed_option(option_value)
+            elif option_type == 'ladder_needed':
+                self._select_ladder_needed_option(option_value)
             else:
                 logger.warning(f"Unknown option type: {option_type}")
         
@@ -561,27 +643,43 @@ class TaskRabbitParser:
         
         if task_details_field:
             try:
-                # Clear the field and enter task details
-                task_details_field.clear()
-                task_details_field.send_keys(task_details)
-                time.sleep(SLEEP_TASK_DETAILS)
-                # Entered task details
-                
-                # Scroll down to make sure button is visible
-                logger.info("Scrolling down to reveal button...")
-                self.driver.execute_script("window.scrollBy(0, 300);")
-                time.sleep(SLEEP_SCROLL_WAIT)
-                
-                if final_button:
-                    self.click_final_button(final_button)
+                # If task_details is empty, skip entering text and just click final button
+                if not task_details:
+                    logger.info("Task details value is empty, skipping text entry")
+                    # Scroll down to make sure button is visible
+                    logger.info("Scrolling down to reveal button...")
+                    self.driver.execute_script("window.scrollBy(0, 300);")
+                    time.sleep(SLEEP_SCROLL_WAIT)
+                    
+                    if final_button:
+                        self.click_final_button(final_button)
+                    else:
+                        self.click_continue_button()
                 else:
-                    self.click_continue_button()
+                    # Clear the field and enter task details
+                    task_details_field.clear()
+                    task_details_field.send_keys(task_details)
+                    time.sleep(SLEEP_TASK_DETAILS)
+                    # Entered task details
+                    
+                    # Scroll down to make sure button is visible
+                    logger.info("Scrolling down to reveal button...")
+                    # Use different scroll distance for general_mounting category
+                    scroll_distance = 500 if self.category_name == 'General Mounting' else 300
+                    self.driver.execute_script(f"window.scrollBy(0, {scroll_distance});")
+                    time.sleep(SLEEP_SCROLL_WAIT)
+                    
+                    if final_button:
+                        self.click_final_button(final_button)
+                    else:
+                        self.click_continue_button()
             except Exception as e:
                 logger.warning(f"Failed to enter task details: {e}")
                 # Try JavaScript approach as fallback
                 try:
-                    self.driver.execute_script(f"arguments[0].value = '{task_details}';", task_details_field)
-                    # Entered task details with JavaScript
+                    if task_details:
+                        self.driver.execute_script(f"arguments[0].value = '{task_details}';", task_details_field)
+                        # Entered task details with JavaScript
                     if final_button:
                         self.click_final_button(final_button)
                     else:
@@ -698,6 +796,408 @@ class TaskRabbitParser:
             logger.error(f"Error selecting vehicle requirements option: {e}")
             # Try to continue anyway
             self.click_continue_button()
+
+    def _select_tv_count_option(self, option_value: str):
+        """Select TV count option (first radio button for TV mounting category)."""
+        logger.info("Selecting TV count option (first radio button)...")
+        
+        try:
+            time.sleep(1)
+            
+            # Look for radio buttons for TV count
+            selectors = [
+                "//input[@type='radio']",
+                "//label[contains(@class, 'radio')]",
+                "//div[@role='radio']"
+            ]
+            
+            option_selected = False
+            for selector in selectors:
+                try:
+                    elements = self.driver.find_elements(By.XPATH, selector)
+                    if elements and len(elements) >= 1:
+                        # Select the first radio button
+                        element = elements[0]
+                        
+                        # If it's an input, click it directly
+                        if element.tag_name == 'input':
+                            element.click()
+                        else:
+                            # Try to find the associated input or click the element
+                            try:
+                                input_element = element.find_element(By.XPATH, ".//input[@type='radio']")
+                                input_element.click()
+                            except Exception:
+                                element.click()
+                        
+                        logger.info("Selected first TV count option")
+                        option_selected = True
+                        break
+                except Exception:
+                    continue
+            
+            if not option_selected:
+                logger.warning("Could not find TV count radio buttons, trying to continue anyway")
+            
+            # Scroll down a little
+            self.driver.execute_script("window.scrollBy(0, 800);")
+            time.sleep(SLEEP_SCROLL_WAIT)
+            
+        except Exception as e:
+            logger.error(f"Error selecting TV count option: {e}")
+            self.click_continue_button()
+
+    def _select_someone_around_option(self, option_value: str):
+        """Select someone around option (third radio button for TV mounting category)."""
+        logger.info("Selecting someone around option (Not needed. No TVs above 60\")...")
+        
+        try:
+            time.sleep(1)
+            
+            # Try clicking the label element directly - more reliable than input
+            selectors = [
+                "//label[contains(@class, 'TRRadioButton-Root') and contains(., 'Not needed. No TVs above 60')]",
+                "//label[p[contains(text(), 'Not needed. No TVs above 60')]]",
+                "//input[@name='Help lifting the TV' and contains(@value, 'Not needed')]/parent::span/parent::span/parent::label",
+                "//input[@name='Help lifting the TV' and contains(@value, 'Not needed')]"
+            ]
+            
+            option_selected = False
+            for selector in selectors:
+                try:
+                    elements = self.driver.find_elements(By.XPATH, selector)
+                    if elements:
+                        # Select the element
+                        element = elements[0]
+                        
+                        # Scroll element into view first
+                        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
+                        time.sleep(0.5)
+                        
+                        # Click the element
+                        element.click()
+                        
+                        logger.info("Selected 'Not needed. No TVs above 60\"' option")
+                        option_selected = True
+                        break
+                except Exception:
+                    continue
+            
+            if not option_selected:
+                logger.warning("Could not find specific radio button, trying third radio button as fallback")
+                # Fallback to third radio button by name
+                try:
+                    elements = self.driver.find_elements(By.XPATH, "//input[@name='Help lifting the TV']")
+                    if elements and len(elements) >= 3:
+                        element = elements[2]
+                        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
+                        time.sleep(0.5)
+                        element.click()
+                        logger.info("Selected third radio button by name as fallback")
+                        option_selected = True
+                except Exception as e:
+                    logger.warning(f"Fallback by name also failed: {e}")
+            
+            # Scroll down a little
+            self.driver.execute_script("window.scrollBy(0, 100);")
+            time.sleep(SLEEP_SCROLL_WAIT)
+            
+        except Exception as e:
+            logger.error(f"Error selecting someone around option: {e}")
+            self.click_continue_button()
+
+    def _select_tv_type_option(self, option_value: str):
+        """Select TV type option (Drywall, plaster, or wood checkbox for TV mounting category)."""
+        logger.info("Selecting TV type option (Drywall, plaster, or wood)...")
+        
+        try:
+            time.sleep(1)
+            
+            # Look for specific checkbox for TV type
+            selectors = [
+                "//input[@type='checkbox' and @value='Drywall, plaster, or wood']",
+                "//input[@name='Wall type' and @value='Drywall, plaster, or wood']",
+                "//label[p[contains(text(), 'Drywall, plaster, or wood')]]",
+                "//label[contains(@class, 'TRCheckbox-label') and contains(., 'Drywall, plaster, or wood')]"
+            ]
+            
+            option_selected = False
+            for selector in selectors:
+                try:
+                    elements = self.driver.find_elements(By.XPATH, selector)
+                    if elements:
+                        # Select the checkbox
+                        element = elements[0]
+                        
+                        # Scroll element into view first
+                        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
+                        time.sleep(0.5)
+                        
+                        # If it's an input, click it directly
+                        if element.tag_name == 'input':
+                            element.click()
+                        else:
+                            # Try to find the associated input or click the element
+                            try:
+                                input_element = element.find_element(By.XPATH, ".//input[@type='checkbox']")
+                                input_element.click()
+                            except Exception:
+                                element.click()
+                        
+                        logger.info("Selected 'Drywall, plaster, or wood' checkbox")
+                        option_selected = True
+                        break
+                except Exception:
+                    continue
+            
+            if not option_selected:
+                logger.warning("Could not find specific TV type checkbox, trying first checkbox as fallback")
+                # Fallback to first checkbox
+                try:
+                    elements = self.driver.find_elements(By.XPATH, "//input[@type='checkbox']")
+                    if elements:
+                        elements[0].click()
+                        logger.info("Selected first checkbox as fallback")
+                        option_selected = True
+                except Exception as e:
+                    logger.warning(f"Fallback also failed: {e}")
+            
+            # Scroll all the way to the bottom
+            self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            time.sleep(SLEEP_SCROLL_WAIT)
+            
+        except Exception as e:
+            logger.error(f"Error selecting TV type option: {e}")
+
+    def _select_fixed_profile_option(self, option_value: str):
+        """Select fixed profile option (Fixed / low profile checkbox for TV mounting category)."""
+        logger.info("Selecting fixed profile option (Fixed / low profile)...")
+        
+        try:
+            time.sleep(1)
+            
+            # Look for specific checkbox for fixed profile
+            selectors = [
+                "//input[@type='checkbox' and @value='Fixed / low profile']",
+                "//input[@name='Mount type' and @value='Fixed / low profile']",
+                "//label[p[contains(text(), 'Fixed / low profile')]]",
+                "//label[contains(@class, 'TRCheckbox-label') and contains(., 'Fixed / low profile')]"
+            ]
+            
+            option_selected = False
+            for selector in selectors:
+                try:
+                    elements = self.driver.find_elements(By.XPATH, selector)
+                    if elements:
+                        # Select the checkbox
+                        element = elements[0]
+                        
+                        # Scroll element into view first
+                        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
+                        time.sleep(0.5)
+                        
+                        # If it's an input, click it directly
+                        if element.tag_name == 'input':
+                            element.click()
+                        else:
+                            # Try to find the associated input or click the element
+                            try:
+                                input_element = element.find_element(By.XPATH, ".//input[@type='checkbox']")
+                                input_element.click()
+                            except Exception:
+                                element.click()
+                        
+                        logger.info("Selected 'Fixed / low profile' checkbox")
+                        option_selected = True
+                        break
+                except Exception:
+                    continue
+            
+            if not option_selected:
+                logger.warning("Could not find specific fixed profile checkbox, trying first checkbox as fallback")
+                # Fallback to first checkbox
+                try:
+                    elements = self.driver.find_elements(By.XPATH, "//input[@type='checkbox']")
+                    if elements:
+                        elements[0].click()
+                        logger.info("Selected first checkbox as fallback")
+                        option_selected = True
+                except Exception as e:
+                    logger.warning(f"Fallback also failed: {e}")
+            
+            # Scroll down a little
+            self.driver.execute_script("window.scrollBy(0, 100);")
+            time.sleep(SLEEP_SCROLL_WAIT)
+            
+        except Exception as e:
+            logger.error(f"Error selecting fixed profile option: {e}")
+
+    def _select_other_mounting_option(self, option_value: str):
+        """Select other mounting option (click 'Other Mounting' button for general mounting category)."""
+        logger.info("Selecting other mounting option (Other Mounting button)...")
+        
+        try:
+            # Wait longer for React page to fully render
+            time.sleep(3)
+            
+            # Look for the "Other Mounting" button
+            selectors = [
+                "//button[contains(@class, 'TRButtonChoice-Root') and contains(text(), 'Other Mounting')]",
+                "//button[contains(@class, 'TRButton-Root') and contains(text(), 'Other Mounting')]",
+                "//button[contains(text(), 'Other Mounting')]",
+                "//a[contains(text(), 'Other Mounting')]",
+                "//div[contains(text(), 'Other Mounting')]",
+                "//span[contains(text(), 'Other Mounting')]"
+            ]
+            
+            button_clicked = False
+            for selector in selectors:
+                try:
+                    # Wait for element to be present and clickable
+                    element = self.wait.until(EC.element_to_be_clickable((By.XPATH, selector)))
+                    
+                    # Scroll element into view first
+                    self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
+                    time.sleep(0.5)
+                    
+                    # Try regular click first
+                    try:
+                        element.click()
+                        logger.info("Clicked 'Other Mounting' button with regular click")
+                        button_clicked = True
+                        break
+                    except Exception as e:
+                        logger.warning(f"Regular click failed: {e}, trying JavaScript click")
+                        # Try JavaScript click as fallback
+                        try:
+                            self.driver.execute_script("arguments[0].click();", element)
+                            logger.info("Clicked 'Other Mounting' button with JavaScript click")
+                            button_clicked = True
+                            break
+                        except Exception as e2:
+                            logger.warning(f"JavaScript click also failed: {e2}")
+                            continue
+                except TimeoutException:
+                    logger.warning(f"Timeout waiting for element with selector: {selector}")
+                    continue
+                except Exception as e:
+                    logger.warning(f"Error with selector {selector}: {e}")
+                    continue
+            
+            if not button_clicked:
+                logger.warning("Could not find or click 'Other Mounting' button")
+                # Debug: log all buttons on page
+                try:
+                    all_buttons = self.driver.find_elements(By.TAG_NAME, "button")
+                    logger.info(f"Found {len(all_buttons)} buttons on page")
+                    for i, btn in enumerate(all_buttons[:10]):
+                        logger.info(f"  Button {i+1}: {btn.text}")
+                except Exception as e:
+                    logger.warning(f"Could not debug buttons: {e}")
+            
+            # Wait for page to load
+            time.sleep(SLEEP_PAGE_LOAD)
+            
+        except Exception as e:
+            logger.error(f"Error selecting other mounting option: {e}")
+
+    def _select_hours_needed_option(self, option_value: str):
+        """Select hours needed option (second radio button for general mounting category)."""
+        logger.info("Selecting hours needed option (second radio button)...")
+        
+        try:
+            time.sleep(1)
+            
+            # Look for radio buttons for hours needed
+            selectors = [
+                "//input[@type='radio']",
+                "//label[contains(@class, 'radio')]",
+                "//div[@role='radio']"
+            ]
+            
+            option_selected = False
+            for selector in selectors:
+                try:
+                    elements = self.driver.find_elements(By.XPATH, selector)
+                    if elements and len(elements) >= 2:
+                        # Select the second radio button
+                        element = elements[1]
+                        
+                        # If it's an input, click it directly
+                        if element.tag_name == 'input':
+                            element.click()
+                        else:
+                            # Try to find the associated input or click the element
+                            try:
+                                input_element = element.find_element(By.XPATH, ".//input[@type='radio']")
+                                input_element.click()
+                            except Exception:
+                                element.click()
+                        
+                        logger.info("Selected second hours needed option")
+                        option_selected = True
+                        break
+                except Exception:
+                    continue
+            
+            if not option_selected:
+                logger.warning("Could not find hours needed radio buttons, trying to continue anyway")
+            
+            # Scroll down 500px
+            self.driver.execute_script("window.scrollBy(0, 500);")
+            time.sleep(SLEEP_SCROLL_WAIT)
+            
+        except Exception as e:
+            logger.error(f"Error selecting hours needed option: {e}")
+
+    def _select_ladder_needed_option(self, option_value: str):
+        """Select ladder needed option (first radio button for general mounting category)."""
+        logger.info("Selecting ladder needed option (first radio button)...")
+        
+        try:
+            time.sleep(1)
+            
+            # Look for radio buttons for ladder needed
+            selectors = [
+                "//input[@type='radio']",
+                "//label[contains(@class, 'radio')]",
+                "//div[@role='radio']"
+            ]
+            
+            option_selected = False
+            for selector in selectors:
+                try:
+                    elements = self.driver.find_elements(By.XPATH, selector)
+                    if elements and len(elements) >= 1:
+                        # Select the first radio button
+                        element = elements[0]
+                        
+                        # If it's an input, click it directly
+                        if element.tag_name == 'input':
+                            element.click()
+                        else:
+                            # Try to find the associated input or click the element
+                            try:
+                                input_element = element.find_element(By.XPATH, ".//input[@type='radio']")
+                                input_element.click()
+                            except Exception:
+                                element.click()
+                        
+                        logger.info("Selected first ladder needed option")
+                        option_selected = True
+                        break
+                except Exception:
+                    continue
+            
+            if not option_selected:
+                logger.warning("Could not find ladder needed radio buttons, trying to continue anyway")
+            
+            # Scroll all the way to the bottom
+            self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            time.sleep(SLEEP_SCROLL_WAIT)
+            
+        except Exception as e:
+            logger.error(f"Error selecting ladder needed option: {e}")
                
     def is_valid_person_name(self, name: str) -> bool:
         """Check if a string looks like a valid person name."""
