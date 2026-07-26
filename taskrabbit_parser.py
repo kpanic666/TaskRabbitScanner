@@ -34,7 +34,7 @@ logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s -
 logger = logging.getLogger(__name__)
 
 # Configuration constants - modify these to adjust behavior
-MAX_PAGES_FOR_TESTING = 1     # Set to None to scan all pages, or number to limit pages
+MAX_PAGES_FOR_TESTING = None   # Set to None to scan all pages, or number to limit pages
 DEFAULT_ADDRESS = "448 W 46th St, new york, 10036, NY"
 
 # Address dictionary for location selection
@@ -60,6 +60,7 @@ SLEEP_TASK_DETAILS = 1             # After entering task details
 SLEEP_OPTIONS_COMPLETE = 3         # After completing all options
 SLEEP_PAGE_NAVIGATION = 3         # After navigating to new page
 SLEEP_CARD_LOADING = 7            # Waiting for tasker cards to load
+SLEEP_CATEGORY_NAVIGATION = 2     # After navigating to category page
 
 class TaskRabbitParser:
     def __init__(self, category: str = 'furniture_assembly', headless: bool = False, max_pages: int = None, address: str = DEFAULT_ADDRESS, address_name: str = None):
@@ -71,6 +72,7 @@ class TaskRabbitParser:
         self.max_pages = max_pages  # Limit number of pages to process (None = all pages)
         self.address = address
         self.address_name = address_name
+        self.category_flow_completed = False
         
         # Category configuration
         if category not in CATEGORIES:
@@ -165,7 +167,7 @@ class TaskRabbitParser:
         # Go directly to the category page
         direct_url = self.category_config['url']
         self.driver.get(direct_url)
-        time.sleep(3)
+        time.sleep(SLEEP_CATEGORY_NAVIGATION)
         
         # Loaded category page
         
@@ -224,6 +226,13 @@ class TaskRabbitParser:
             
             time.sleep(SLEEP_CONTINUE_BUTTON)
             self.debug_page_elements("After clicking start booking")
+
+            # General Mounting flow can require choosing "Other Mounting"
+            # immediately after "Book now", before address appears.
+            if self.category == 'general_mounting':
+                logger.info("General Mounting: attempting immediate 'Other Mounting' selection after Book Now")
+                self._select_other_mounting_option("Other Mounting")
+                self.debug_page_elements("After selecting Other Mounting from category page")
         else:
             logger.error("Could not find booking button")
             raise Exception("Booking button not found")
@@ -304,7 +313,6 @@ class TaskRabbitParser:
         # Click Continue button (or "Set location" for TV mounting)
         continue_selectors = [
             "//button[contains(text(), 'Set location')]",
-            "//button[contains(text(), 'Set Location')]",
             "//button[contains(text(), 'Continue')]",
             "//a[contains(text(), 'Continue')]",
             "//button[contains(text(), 'Next')]",
@@ -318,7 +326,7 @@ class TaskRabbitParser:
         for selector in continue_selectors:
             try:
                 # Try with a shorter timeout for TV mounting
-                continue_btn = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, selector)))
+                continue_btn = WebDriverWait(self.driver, 1).until(EC.element_to_be_clickable((By.XPATH, selector)))
                 logger.info(f"Found Continue button with selector: {selector}")
                 break
             except TimeoutException:
@@ -340,9 +348,136 @@ class TaskRabbitParser:
         continue_btn.click()
         time.sleep(SLEEP_ADDRESS_CONTINUE)
         self.debug_page_elements("After clicking Continue")
+
+        # For General Mounting, TaskRabbit may immediately ask for
+        # "Items to install" right after "Set location".
+        if self.category == 'general_mounting':
+            self._fill_general_mounting_items_to_install()
+
+    def _fill_general_mounting_items_to_install(self):
+        """Fill the 'Items to install' input when it appears in general mounting flow."""
+        logger.info("General Mounting: checking for 'Items to install' field...")
+        short_wait = WebDriverWait(self.driver, 4)
+
+        # Pull text from configured task_details value for this category.
+        details_text = ''
+        for option in self.category_config.get('options', []):
+            if option.get('type') == 'task_details':
+                details_text = option.get('value', '')
+                break
+
+        if not details_text:
+            logger.info("General Mounting: no task_details configured, skipping items input")
+            return
+
+        selectors = [
+            "//input[@name='Items to install']",
+            "//input[contains(@aria-labelledby, 'scoping-question') and @type='text']",
+            "//label[contains(., 'Items to install')]/following::input[@type='text'][1]",
+            "//input[@data-testid='input-text']",
+        ]
+
+        for selector in selectors:
+            try:
+                field = short_wait.until(
+                    EC.presence_of_element_located((By.XPATH, selector))
+                )
+
+                if not field.is_displayed():
+                    continue
+
+                self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", field)
+                time.sleep(0.4)
+                field.clear()
+                field.send_keys(details_text)
+                logger.info(f"General Mounting: entered items text: '{details_text}'")
+                time.sleep(SLEEP_TASK_DETAILS)
+
+                # Required next step for General Mounting:
+                # scroll down and select "Hours of help requested" = 2.
+                self.driver.execute_script("window.scrollBy(0, 500);")
+                time.sleep(SLEEP_SCROLL_WAIT)
+
+                hour_selectors = [
+                    "//input[@type='radio' and @name='Hours of help requested' and @value='2']",
+                    "//label[.//input[@name='Hours of help requested' and @value='2']]",
+                    "//input[@name='Hours of help requested' and @value='2']/ancestor::label[1]",
+                ]
+
+                hour_selected = False
+                for hour_selector in hour_selectors:
+                    try:
+                        hour_element = short_wait.until(
+                            EC.element_to_be_clickable((By.XPATH, hour_selector))
+                        )
+                        try:
+                            hour_element.click()
+                        except Exception:
+                            self.driver.execute_script("arguments[0].click();", hour_element)
+                        logger.info("General Mounting: selected 'Hours of help requested' value 2")
+                        self.driver.execute_script("window.scrollBy(0, 500);")
+                        time.sleep(SLEEP_SCROLL_WAIT)
+
+                        ladder_selectors = [
+                            "//input[@type='radio' and @name='Ladder needed & max reach' and @value='No ladder needed']",
+                            "//label[.//input[@name='Ladder needed & max reach' and @value='No ladder needed']]",
+                            "//input[@name='Ladder needed & max reach' and @value='No ladder needed']/ancestor::label[1]",
+                        ]
+
+                        ladder_selected = False
+                        for ladder_selector in ladder_selectors:
+                            try:
+                                ladder_element = short_wait.until(
+                                    EC.element_to_be_clickable((By.XPATH, ladder_selector))
+                                )
+                                try:
+                                    ladder_element.click()
+                                except Exception:
+                                    self.driver.execute_script("arguments[0].click();", ladder_element)
+                                logger.info("General Mounting: selected 'No ladder needed'")
+                                ladder_selected = True
+                                break
+                            except TimeoutException:
+                                continue
+                            except Exception as e:
+                                logger.warning(f"General Mounting: failed selecting ladder option with selector {ladder_selector}: {e}")
+                                continue
+
+                        if not ladder_selected:
+                            logger.warning("General Mounting: could not select 'No ladder needed'")
+
+                        # Finalize this question set like other categories:
+                        # scroll to bottom and confirm.
+                        self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                        time.sleep(SLEEP_SCROLL_WAIT)
+                        self.click_final_button("Submit answer")
+                        self.category_flow_completed = True
+
+                        hour_selected = True
+                        break
+                    except TimeoutException:
+                        continue
+                    except Exception as e:
+                        logger.warning(f"General Mounting: failed selecting hours with selector {hour_selector}: {e}")
+                        continue
+
+                if not hour_selected:
+                    logger.warning("General Mounting: could not select 'Hours of help requested' value 2")
+                return
+            except TimeoutException:
+                continue
+            except Exception as e:
+                logger.warning(f"General Mounting: failed filling selector {selector}: {e}")
+                continue
+
+        logger.info("General Mounting: 'Items to install' field not found right after location step")
         
     def select_category_options(self):
         """Select category-specific options through the booking flow."""
+        if self.category == 'general_mounting' and self.category_flow_completed:
+            logger.info("General Mounting flow already completed; skipping additional option steps")
+            return
+
         logger.info(f"Selecting {self.category_name} options...")
         self.debug_page_elements(f"Before selecting {self.category_name} options")
         
@@ -1037,16 +1172,23 @@ class TaskRabbitParser:
         logger.info("Selecting other mounting option (Other Mounting button)...")
         
         try:
-            # Wait longer for React page to fully render
-            time.sleep(3)
+            # Clear overlays first to match Book Now interaction reliability.
+            self.remove_all_overlays_aggressively()
+            short_wait = WebDriverWait(self.driver, 5)
+            time.sleep(1)
             
             # Look for the "Other Mounting" button
             selectors = [
                 "//button[contains(@class, 'TRButtonChoice-Root') and contains(text(), 'Other Mounting')]",
+                "//button[contains(@class, 'TRButtonChoice-Root') and contains(text(), 'Other mounting')]",
                 "//button[contains(@class, 'TRButton-Root') and contains(text(), 'Other Mounting')]",
+                "//button[contains(@class, 'TRButton-Root') and contains(text(), 'Other mounting')]",
                 "//button[contains(text(), 'Other Mounting')]",
+                "//button[contains(text(), 'Other mounting')]",
                 "//a[contains(text(), 'Other Mounting')]",
+                "//a[contains(text(), 'Other mounting')]",
                 "//div[contains(text(), 'Other Mounting')]",
+                "//div[contains(text(), 'Other mounting')]",
                 "//span[contains(text(), 'Other Mounting')]"
             ]
             
@@ -1054,7 +1196,7 @@ class TaskRabbitParser:
             for selector in selectors:
                 try:
                     # Wait for element to be present and clickable
-                    element = self.wait.until(EC.element_to_be_clickable((By.XPATH, selector)))
+                    element = short_wait.until(EC.element_to_be_clickable((By.XPATH, selector)))
                     
                     # Scroll element into view first
                     self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
@@ -1096,7 +1238,7 @@ class TaskRabbitParser:
                     logger.warning(f"Could not debug buttons: {e}")
             
             # Wait for page to load
-            time.sleep(SLEEP_PAGE_LOAD)
+            time.sleep(1)
             
         except Exception as e:
             logger.error(f"Error selecting other mounting option: {e}")
@@ -1288,12 +1430,25 @@ class TaskRabbitParser:
         """Check if there's a next page available for pagination."""
         return scraper.check_for_next_page(self)
     
+    def _get_csv_fieldnames(self) -> List[str]:
+        """Return CSV columns for the current category."""
+        fieldnames = [
+            'name', 'hourly_rate', 'review_rating', 'review_count',
+            'furniture_tasks', 'overall_tasks',
+        ]
+        if self.category == 'general_mounting':
+            fieldnames.extend(['general_mounting_tasks', 'overall_mounting_tasks'])
+        elif self.category == 'tv_mounting':
+            fieldnames.extend(['tv_mounting_tasks', 'overall_mounting_tasks'])
+        fieldnames.extend(['two_hour_minimum', 'elite_status'])
+        return fieldnames
+
     def save_to_csv(self, taskers: List[Dict[str, str]]):
         """Save extracted tasker data to CSV file."""
         logger.info(f"Saving {len(taskers)} taskers to CSV...")
         
         with open(self.csv_filename, 'w', newline='', encoding='utf-8') as csvfile:
-            fieldnames = ['name', 'hourly_rate', 'review_rating', 'review_count', 'furniture_tasks', 'overall_tasks', 'two_hour_minimum', 'elite_status']
+            fieldnames = self._get_csv_fieldnames()
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
             

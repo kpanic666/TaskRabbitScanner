@@ -32,14 +32,17 @@ def parse_hourly_rate(rate_str):
 def extract_category_and_datetime(filename):
     """
     Extract category name and datetime from filename.
-    Example: 'furniture_assembly_20251104_101126.csv' 
+    Example: 'furniture_assembly_20251104_101126.csv'
     -> ('furniture_assembly', datetime(2025, 11, 4, 10, 11, 26))
     """
     # Remove .csv extension
     name = filename.replace('.csv', '')
     
-    # Pattern: category_YYYYMMDD_HHMMSS
-    match = re.match(r'(.+)_(\d{8})_(\d{6})$', name)
+    # Pattern: category_YYYYMMDD_HHMMSS[_optional_suffix]
+    # Supports filenames like:
+    # - furniture_assembly_20251104_101126
+    # - general_mounting_20260528_012218_manhattan_uws
+    match = re.match(r'(.+)_(\d{8})_(\d{6})(?:_.+)?$', name)
     if match:
         category = match.group(1)
         date_str = match.group(2)

@@ -1,0 +1,16 @@
+name,hourly_rate,review_rating,review_count,furniture_tasks,overall_tasks,two_hour_minimum,elite_status
+TIMUR M.,$103.24,5.0,1709,3876,3865,True,False
+MYKHAYLO M.,$84.65,5.0,710,1782,1778,True,False
+ALEKSANDR I.,$92.91,5.0,1398,2847,2821,True,False
+Anatolii G.,$92.91,5.0,763,1662,1669,True,False
+Mykola P.,$80.52,5.0,1736,3113,3116,True,False
+Aleksandr P.,$79.49,5.0,1346,3091,3100,True,False
+Solbon S.,$67.10,5.0,165,287,214,True,False
+ILYA I.,$87.75,5.0,1246,2378,2337,True,False
+Vasilii S.,$98.07,5.0,1195,2437,2488,True,False
+ALDAR T.,$67.10,5.0,846,861,1614,True,False
+Dmytro V.,$67.10,5.0,115,205,202,True,False
+John A.,$108.40,5.0,1104,1789,1777,True,True
+John D.,$61.94,5.0,30,79,63,True,False
+Art D.,$69.17,5.0,236,466,460,False,False
+Artem F.,$48.52,5.0,40,61,54,False,False

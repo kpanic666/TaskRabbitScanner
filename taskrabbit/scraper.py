@@ -2,12 +2,61 @@ import time
 import re
 from typing import List, Dict
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 from .selectors import NAME_SELECTORS_CARD, RATE_SELECTORS_CARD
 
 # This module contains the scraping and pagination helpers extracted from TaskRabbitParser.
 # Each function accepts `ctx`, which is the TaskRabbitParser instance, so it can
 # access `driver`, `wait`, constants (SLEEP_*), and helper methods like
 # `is_potential_name()` and `is_valid_person_name()`.
+
+GENERAL_MOUNTING_TASKS_PATTERN = r"(\d+)\s+general mounting tasks"
+TV_MOUNTING_TASKS_PATTERN = r"(\d+)\s+tv mounting tasks"
+OVERALL_MOUNTING_TASKS_PATTERNS = [
+    r"(\d+)\s+mounting tasks overall",
+    r"(\d+)\s+overall mounting tasks",
+]
+
+
+def _search_patterns(text: str, patterns) -> str:
+    """Return the first regex capture from text, or 'Not found'."""
+    if isinstance(patterns, str):
+        patterns = [patterns]
+    for pattern in patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            return match.group(1)
+    return "Not found"
+
+
+def _extract_overall_mounting_tasks(card_text: str, card_html: str) -> str:
+    """Extract overall mounting task count from a tasker card."""
+    overall_mounting_tasks = _search_patterns(card_text, OVERALL_MOUNTING_TASKS_PATTERNS)
+    if overall_mounting_tasks == "Not found" and card_html:
+        overall_mounting_tasks = _search_patterns(card_html, OVERALL_MOUNTING_TASKS_PATTERNS)
+        if overall_mounting_tasks == "Not found":
+            overall_mounting_tasks = "None"
+    return overall_mounting_tasks
+
+
+def _extract_general_mounting_task_counts(card_text: str, card_html: str):
+    """Extract general mounting and overall mounting task counts from a tasker card."""
+    general_mounting_tasks = _search_patterns(card_text, GENERAL_MOUNTING_TASKS_PATTERN)
+    if general_mounting_tasks == "Not found" and card_html:
+        general_mounting_tasks = _search_patterns(card_html, GENERAL_MOUNTING_TASKS_PATTERN)
+    overall_mounting_tasks = _extract_overall_mounting_tasks(card_text, card_html)
+    return general_mounting_tasks, overall_mounting_tasks
+
+
+def _extract_tv_mounting_task_counts(card_text: str, card_html: str):
+    """Extract TV mounting and overall mounting task counts from a tasker card."""
+    tv_mounting_tasks = _search_patterns(card_text, TV_MOUNTING_TASKS_PATTERN)
+    if tv_mounting_tasks == "Not found" and card_html:
+        tv_mounting_tasks = _search_patterns(card_html, TV_MOUNTING_TASKS_PATTERN)
+    overall_mounting_tasks = _extract_overall_mounting_tasks(card_text, card_html)
+    return tv_mounting_tasks, overall_mounting_tasks
 
 
 def extract_tasker_data(ctx) -> List[Dict[str, str]]:
@@ -65,8 +114,27 @@ def extract_taskers_from_current_page(ctx) -> List[Dict[str, str]]:
     logger.info(f"Current URL: {driver.current_url}")
     logger.info(f"Page title: {driver.title}")
 
-    # Wait for tasker cards to load
-    time.sleep(ctx.__dict__.get('SLEEP_CARD_LOADING', 5))
+    # Wait for results page to become ready.
+    # Prefer explicit waits over fixed sleeps, since load time varies by category/page.
+    wait_seconds = ctx.__dict__.get('SLEEP_CARD_LOADING', 5)
+    card_wait = WebDriverWait(driver, wait_seconds)
+    readiness_selectors = [
+        "//div[@data-testid='tasker-card-mobile']",
+        "//div[contains(@data-testid, 'tasker')]",
+        "//div[contains(@class, 'MuiPagination-root')]",
+    ]
+    cards_ready = False
+    for selector in readiness_selectors:
+        try:
+            card_wait.until(EC.presence_of_element_located((By.XPATH, selector)))
+            cards_ready = True
+            break
+        except TimeoutException:
+            continue
+
+    # Small settle delay helps avoid parsing partially rendered cards.
+    if cards_ready:
+        time.sleep(0.6)
 
     # Find tasker cards using the mobile card selector from HTML analysis
     tasker_card_selector = "//div[@data-testid='tasker-card-mobile']"
@@ -274,6 +342,26 @@ def extract_taskers_from_current_page(ctx) -> List[Dict[str, str]]:
             except Exception:
                 pass
 
+            general_mounting_tasks = "Not found"
+            overall_mounting_tasks = "Not found"
+            tv_mounting_tasks = "Not found"
+            category = getattr(ctx, 'category', None)
+            if category in ('general_mounting', 'tv_mounting'):
+                try:
+                    mounting_card_text = card.text
+                    mounting_card_html = card.get_attribute('innerHTML') or ''
+                except Exception:
+                    mounting_card_text = ""
+                    mounting_card_html = ""
+                if category == 'general_mounting':
+                    general_mounting_tasks, overall_mounting_tasks = _extract_general_mounting_task_counts(
+                        mounting_card_text, mounting_card_html
+                    )
+                elif category == 'tv_mounting':
+                    tv_mounting_tasks, overall_mounting_tasks = _extract_tv_mounting_task_counts(
+                        mounting_card_text, mounting_card_html
+                    )
+
             # Flags
             two_hour_minimum = False
             try:
@@ -362,11 +450,29 @@ def extract_taskers_from_current_page(ctx) -> List[Dict[str, str]]:
                 'two_hour_minimum': two_hour_minimum,
                 'elite_status': elite_status,
             }
+            if category == 'general_mounting':
+                tasker['general_mounting_tasks'] = general_mounting_tasks
+                tasker['overall_mounting_tasks'] = overall_mounting_tasks
+            elif category == 'tv_mounting':
+                tasker['tv_mounting_tasks'] = tv_mounting_tasks
+                tasker['overall_mounting_tasks'] = overall_mounting_tasks
             taskers.append(tasker)
-            logger.info(
+            task_log = (
                 f"Card {i+1}: {name} - {rate} - Rating: {review_rating} ({review_count} reviews) - "
-                f"Tasks: {furniture_tasks} furniture, {overall_tasks} overall - 2Hr Min: {two_hour_minimum} - Elite: {elite_status}"
+                f"Tasks: {furniture_tasks} furniture, {overall_tasks} overall"
             )
+            if category == 'general_mounting':
+                task_log += (
+                    f", {general_mounting_tasks} general mounting, "
+                    f"{overall_mounting_tasks} mounting overall"
+                )
+            elif category == 'tv_mounting':
+                task_log += (
+                    f", {tv_mounting_tasks} tv mounting, "
+                    f"{overall_mounting_tasks} mounting overall"
+                )
+            task_log += f" - 2Hr Min: {two_hour_minimum} - Elite: {elite_status}"
+            logger.info(task_log)
 
             if rate == "Rate not found":
                 logger.debug(f"Card {i+1} text sample: {card.text[:200]}...")

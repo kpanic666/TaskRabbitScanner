@@ -1,0 +1,16 @@
+name,hourly_rate,review_rating,review_count,furniture_tasks,overall_tasks,two_hour_minimum,elite_status
+Yerlan T.,$78.46,4.9,286,Not found,None,False,False
+Timur I.,$72.26,5.0,135,Not found,None,False,False
+Sergei G.,$72.26,5.0,286,Not found,None,False,True
+Roman A.,$98.07,4.9,575,Not found,None,False,True
+Mikhail M.,$82.59,4.9,95,Not found,None,True,False
+Brian S.,$47.49,5.0,19,Not found,None,False,False
+Aiur G.,$65.04,4.9,107,Not found,None,False,False
+Pavel N.,$72.26,5.0,516,Not found,None,False,False
+Farrukh K.,$61.94,4.6,10,Not found,None,True,False
+Yuri M.,$62.97,4.6,78,Not found,None,False,False
+Mahendra S.,$66.07,5.0,1178,Not found,None,False,False
+Marcos P.,$87.75,5.0,4,Not found,None,True,False
+Robert K.,$77.43,5.0,283,Not found,None,False,False
+Vasyl N.,$53.68,5.0,40,Not found,None,False,False
+Dilshod E.,$61.94,4.9,112,Not found,None,False,False
